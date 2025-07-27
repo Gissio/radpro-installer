@@ -1,6 +1,6 @@
 # Rad Pro web installer
 
-This tool allows you to easily install or update the Rad Pro custom firmware on your compatible Geiger counter.
+This tool allows you to easily install or update the [Rad Pro](https://github.com/Gissio/radpro) custom firmware on your compatible Geiger counter.
 
 ## Supported devices
 
@@ -11,4 +11,4 @@ The Rad Pro Web Installer is compatible with the following Geiger counter models
 
 ## Installation steps
 
-Visit the [Rad Pro web installer](https://gissio.github.io/radpro-installer/).
+* Visit the [Rad Pro web installer](https://gissio.github.io/radpro-installer/) site.
