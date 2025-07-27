@@ -1,0 +1,1387 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1, user-scalable=1, viewport-fit=cover">
+    <meta name="theme-color" content="#fff" />
+    <title>Rad Pro web installer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            width: 100%;
+            max-width: 40rem;
+            margin: 2rem auto 6rem auto;
+            padding: 0;
+            font-family: "Noto Sans", sans-serif;
+            font-optical-sizing: auto;
+            font-weight: 370;
+            font-style: normal;
+            font-variation-settings: "wdth" 100;
+            background-color: rgb(255, 255, 255);
+            color: rgb(26, 26, 26);
+        }
+
+        a {
+            color: rgb(26, 26, 26);
+        }
+
+        h1 {
+            margin: 2rem 1rem 1rem 1rem;
+            font-weight: 570;
+            font-size: 3rem;
+        }
+
+        h1 a {
+            text-decoration: none;
+        }
+
+        h2 {
+            margin: 2rem 1rem 1rem 1rem;
+            font-weight: 570;
+            font-size: 2rem;
+        }
+
+        p {
+            margin: 1rem;
+            font-size: 1rem;
+            line-height: 1.5rem;
+        }
+
+        b {
+            font-weight: 570;
+        }
+
+        ul {
+            margin: 1rem;
+        }
+
+        button {
+            display: inline-block;
+            width: 10rem;
+            border: 0.0625rem;
+            border-radius: 0.375rem;
+            padding: 0.4375rem;
+            text-align: center;
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 570;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: rgb(255, 255, 255);
+            border-color: rgba(0, 0, 0, 0.1);
+            transition-duration: 0.3s;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        button:active {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        button:disabled {
+            background-color: rgba(0, 0, 0, 0.2);
+            cursor: default;
+        }
+
+        select {
+            display: inline-block;
+            width: 10rem;
+            border: 0.0625rem solid rgb(205, 205, 205);
+            border-radius: 0.375rem;
+            padding: 0.4375rem 1rem;
+            appearance: none;
+            outline: none;
+            font-size: 1rem;
+            font-weight: 570;
+            background-color: rgb(255, 255, 255);
+            background-image: url("data:image/svg+xml;utf8,<svg fill='rgba(0, 0, 0, 0.55)' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+            background-repeat: no-repeat;
+            background-position-x: 100%;
+            background-position-y: center;
+            color: #1a1a1a;
+        }
+
+        select:open {
+            background-color: #ebebeb;
+        }
+
+        option {
+            height: 2rem;
+            padding: 0.4375rem;
+            background-color: rgb(255, 255, 255);
+            font-size: 1rem;
+            font-weight: 370;
+        }
+
+        option:hover {
+            background-color: rgb(200, 112, 214);
+        }
+
+        option:checked {
+            background-color: rgba(48, 87, 146, 0.1);
+            font-weight: 570;
+        }
+
+        .tableEntry {
+            display: inline-block;
+            width: 8rem;
+        }
+    </style>
+</head>
+
+<body>
+    <svg style="display: none;">
+        <symbol id="dropdown" height="24px" viewBox="0 -960 960 960" width="24px">
+            <path d="M480-360 280-560h400L480-360Z" />
+        </symbol>
+    </svg>
+
+    <div id="container">
+    </div>
+
+    <script>
+        // Install info
+
+        const radProVersion = '2.2beta6';
+
+        const installInfos = {
+            'FS2011 (STM32F051C8)': {
+                productId: 0x440,
+                uniqueIdAddress: 0x1ffff7ac,
+                flashSize: 0x10000,
+                flashPageSize: 0x400,
+                env: 'fs2011-stm32f051c8',
+                instructions: `<p>Use the following controls to operate your device:</p>
+
+<ul>
+<li><b>Power on/off:</b> Press and hold the Power key.</li>
+<li><b>Switch measurement mode:</b> Use the Up or Down key.</li>
+<li><b>Switch secondary measurement view:</b> Press the Play/Pause key.</li>
+<li><b>Reset measurement/dismiss alarm:</b> Press and hold the Play/Pause key.</li>
+<li><b>Toggle pulse sound (measurement view only):</b> Press and hold the Down key.</li>
+<li><b>Sleep display (measurement view only):</b> Press the Power key.</li>
+<li><b>Access settings:</b> Press the Menu/OK key.</li>
+<li><b>Navigate options:</b> Use the Up or Down key.</li>
+<li><b>Select option:</b> Press the Menu/OK or Power key.</li>
+<li><b>Go back:</b> Press the Play/Pause key.</li>
+<li><b>Toggle lock mode:</b> Press and hold both the Power and Play/Pause keys.</li>
+</ul>
+
+<p>To configure the device:</p>
+
+<ul>
+<li>Go to <b>Settings &gt; Geiger tube &gt; Sensitivity</b> and select the option matching your Geiger-Müller tube.</li>
+<li>In <b>Geiger tube > HV Profile</b>, choose an appropriate HV profile.
+</ul>`,
+            },
+            'FS2011 (GD32F150C8)': {
+                productId: 0x440,
+                uniqueIdAddress: 0x1ffff7ac,
+                flashSize: 0x10000,
+                flashPageSize: 0x400,
+                env: 'fs2011-gd32f150c8',
+                instructions: `<p>Use the following controls to operate your device:</p>
+
+<ul>
+<li><b>Power on/off:</b> Press and hold the Power key.</li>
+<li><b>Switch measurement mode:</b> Use the Up or Down key.</li>
+<li><b>Switch secondary measurement view:</b> Press the Play/Pause key.</li>
+<li><b>Reset measurement/dismiss alarm:</b> Press and hold the Play/Pause key.</li>
+<li><b>Toggle pulse sound (measurement view only):</b> Press and hold the Down key.</li>
+<li><b>Sleep display (measurement view only):</b> Press the Power key.</li>
+<li><b>Access settings:</b> Press the Menu/OK key.</li>
+<li><b>Navigate options:</b> Use the Up or Down key.</li>
+<li><b>Select option:</b> Press the Menu/OK or Power key.</li>
+<li><b>Go back:</b> Press the Play/Pause key.</li>
+<li><b>Toggle lock mode:</b> Press and hold both the Power and Play/Pause keys.</li>
+</ul>
+
+<p>To configure the device:</p>
+
+<ul>
+<li>Go to <b>Settings &gt; Geiger tube &gt; Sensitivity</b> and select the option matching your Geiger-Müller tube.</li>
+<li>In <b>Geiger tube > HV Profile</b>, choose an appropriate HV profile.
+</ul>`,
+            },
+            'FS2011 (GD32F103C8)': {
+                productId: 0x410,
+                uniqueIdAddress: 0x1ffff7e8,
+                flashSize: 0x10000,
+                flashPageSize: 0x400,
+                env: 'fs2011-gd32f103c8',
+                instructions: `<p>Use the following controls to operate your device:</p>
+
+<ul>
+<li><b>Power on/off:</b> Press and hold the Power key.</li>
+<li><b>Switch measurement mode:</b> Use the Up or Down key.</li>
+<li><b>Switch secondary measurement view:</b> Press the Play/Pause key.</li>
+<li><b>Reset measurement/dismiss alarm:</b> Press and hold the Play/Pause key.</li>
+<li><b>Toggle pulse sound (measurement view only):</b> Press and hold the Down key.</li>
+<li><b>Sleep display (measurement view only):</b> Press the Power key.</li>
+<li><b>Access settings:</b> Press the Menu/OK key.</li>
+<li><b>Navigate options:</b> Use the Up or Down key.</li>
+<li><b>Select option:</b> Press the Menu/OK or Power key.</li>
+<li><b>Go back:</b> Press the Play/Pause key.</li>
+<li><b>Toggle lock mode:</b> Press and hold both the Power and Play/Pause keys.</li>
+</ul>
+
+<p>To configure the device:</p>
+
+<ul>
+<li>Go to <b>Settings &gt; Geiger tube &gt; Sensitivity</b> and select the option matching your Geiger-Müller tube.</li>
+<li>In <b>Geiger tube > HV Profile</b>, choose an appropriate HV profile.
+</ul>`,
+            },
+            'Bosean FS-600': {
+                productId: 0x460,
+                uniqueIdAddress: 0x1fff7590,
+                flashSize: 0x20000,
+                flashPageSize: 0x800,
+                env: 'bosean-fs600',
+                instructions: `<p>Use the following controls to operate your device:</p>
+
+<ul>
+<li><b>Power on/off:</b> Press and hold the OK/Power key.</li>
+<li><b>Switch measurement mode:</b> Use the Up or Down key.</li>
+<li><b>Switch secondary measurement view:</b> Press the Back key.</li>
+<li><b>Reset measurement/dismiss alarm:</b> Press and hold the Back key.</li>
+<li><b>Toggle pulse sound (measurement view only):</b> Press and hold the Down key.</li>
+<li><b>Sleep display (measurement view only):</b> Press the OK/Power key.</li>
+<li><b>Access settings:</b> Press the Right/Settings key.</li>
+<li><b>Navigate options:</b> Use the Up or Down key.</li>
+<li><b>Select option:</b> Press the Right/Settings or OK/Power key.</li>
+<li><b>Go back:</b> Press the Back key.</li>
+<li><b>Toggle lock mode:</b> PPress and hold both the OK/Power and Back keys.</li>
+</ul>
+
+<p>To configure the device:</p>
+
+<ul>
+<li>Go to <b>Settings &gt; Geiger tube &gt; Sensitivity</b> and select the option matching your Geiger-Müller tube.</li>
+<li>In <b>Geiger tube > HV Profile</b>, choose an appropriate HV profile.
+<li>For USB data connections under Windows, install the <a href="https://www.catalog.update.microsoft.com/Search.aspx?q=USB%5CVID_1A86%26PID_7523">CH340</a> driver.</li>
+</ul>`,
+            },
+            'Bosean FS-1000': {
+                productId: 0x460,
+                uniqueIdAddress: 0x1fff7590,
+                flashSize: 0x20000,
+                flashPageSize: 0x800,
+                env: 'bosean-fs1000',
+                instructions: `<p>Use the following controls to operate your device:</p>
+
+<ul>
+<li><b>Power on/off:</b> Press and hold the OK/Power key.</li>
+<li><b>Switch measurement mode:</b> Use the Up or Down key.</li>
+<li><b>Switch secondary measurement view:</b> Press the Back key.</li>
+<li><b>Reset measurement/dismiss alarm:</b> Press and hold the Back key.</li>
+<li><b>Toggle pulse sound (measurement view only):</b> Press and hold the Down key.</li>
+<li><b>Sleep display (measurement view only):</b> Press the OK/Power key.</li>
+<li><b>Access settings:</b> Press the Right/Settings key.</li>
+<li><b>Navigate options:</b> Use the Up or Down key.</li>
+<li><b>Select option:</b> Press the Right/Settings or OK/Power key.</li>
+<li><b>Go back:</b> Press the Back key.</li>
+<li><b>Toggle lock mode:</b> PPress and hold both the OK/Power and Back keys.</li>
+</ul>
+
+<p>To configure the device:</p>
+
+<ul>
+<li>Go to <b>Settings &gt; Geiger tube &gt; Sensitivity</b> and select the option matching your Geiger-Müller tube.</li>
+<li>In <b>Geiger tube > HV Profile</b>, choose an appropriate HV profile.
+<li>For USB data connections under Windows, install the <a href="https://www.catalog.update.microsoft.com/Search.aspx?q=USB%5CVID_1A86%26PID_7523">CH340</a> driver.</li>
+</ul>`,
+            },
+            'Bosean FS-5000': {
+                productId: 0x435,
+                uniqueIdAddress: 0x1fff7590,
+                flashSize: 0x40000,
+                flashPageSize: 0x800,
+                env: 'bosean-fs5000',
+                instructions: `<p>Use the following controls to operate your device:</p>
+
+<ul>
+<li><b>Power on/off:</b> Press and hold the OK/Power key.</li>
+<li><b>Switch measurement mode:</b> Use the Up/Back or Down/Settings key.</li>
+<li><b>Switch secondary measurement view:</b> Press the OK/Power key.</li>
+<li><b>Reset measurement/dismiss alarm:</b> Press and long hold the Up/Back key.</li>
+<li><b>Toggle pulse sound (measurement view only):</b> Press and long hold both the Up/Back and Down/Settings key.</li>
+<li><b>Access settings:</b> Press and short hold the Down/Settings key.</li>
+<li><b>Navigate options:</b> Use the Up/Back or Down/Settings key.</li>
+<li><b>Select option:</b> Press and short hold the Right/Settings key or press the OK/Power key.</li>
+<li><b>Go back:</b> Press and short hold the Up/Back key.</li>
+<li><b>Toggle lock mode:</b> Press and long hold both the OK/Power and Up/Back keys.</li>
+</ul>
+
+<p>To configure the device:</p>
+
+<ul>
+<li>Go to <b>Settings &gt; Geiger tube &gt; Sensitivity</b> and select the option matching your Geiger-Müller tube.</li>
+<li>For USB data connections under Windows, install the <a href="https://www.catalog.update.microsoft.com/Search.aspx?q=USB%5CVID_1A86%26PID_7523">CH340</a> driver.</li>
+</ul>`,
+            },
+            'FNIRSI GC-01 (CH32F103C8)': {
+            },
+            'FNIRSI GC-01 (APM32F103CB)': {
+            },
+            'GQ GMC-800': {
+                productId: 0x414,
+                uniqueIdAddress: 0x1ffff7e8,
+                flashSize: 0x40000,
+                flashPageSize: 0x800,
+                env: 'gq-gmc800',
+                instructions: `<p>Use the following controls to operate your device:</p>
+
+<ul>
+<li><b>Power on/off:</b> Press and hold the Power key.</li>
+<li><b>Switch measurement mode:</b> Use the Up or Down key.</li>
+<li><b>Switch secondary measurement view:</b> Press the Back key.</li>
+<li><b>Reset measurement/dismiss alarm:</b> Press and hold the Back key.</li>
+<li><b>Toggle pulse sound (measurement view only):</b> Press and hold the Down key.</li>
+<li><b>Voice play (measurement view only):</b> Press and hold the Up key.</li>
+<li><b>Access settings:</b> Press the Power key.</li>
+<li><b>Navigate options:</b> Use the Up or Down key.</li>
+<li><b>Select option:</b> Press the Power key.</li>
+<li><b>Go back:</b> Press the Back key.</li>
+<li><b>Toggle lock mode:</b> Press and hold both the Back and Power keys.</li>
+</ul>`,
+            },
+        };
+
+        const languageNameFromCode = {
+            'bg': 'Bulgarian',
+            'cs': 'Czech',
+            'da': 'Danish',
+            'de': 'German',
+            'el': 'Greek',
+            'en': 'English',
+            'es': 'Spanish',
+            'fi': 'Finnish',
+            'fr': 'French',
+            'hr': 'Croatian',
+            'hu': 'Hungarian',
+            'it': 'Italian',
+            'ja': 'Japanese',
+            'ko': 'Korean',
+            'nl': 'Dutch',
+            'no': 'Norwegian',
+            'pl': 'Polish',
+            'pt': 'Portuguese',
+            'ro': 'Romanian',
+            'ru': 'Russian',
+            'sk': 'Slovakian',
+            'sl': 'Slovenian',
+            'sv': 'Swedish',
+            'tr': 'Turkish',
+            'uk': 'Ukrainian',
+            'vi': 'Vietnamese',
+            'zh_CN': 'Chinese (Simplified)',
+        }
+
+        const Software = {
+            SystemBootloader: 'System bootloader',
+            RadPro: 'Rad Pro',
+            GQ: 'GQ',
+        };
+
+        // Common functions
+
+        class TimeoutError extends Error {
+            constructor(message = '') {
+                super(message);
+                this.name = 'TimeoutError';
+                if (Error.captureStackTrace) {
+                    Error.captureStackTrace(this, TimeoutError);
+                }
+            }
+        }
+
+        class ResponseError extends Error {
+            constructor(message = '') {
+                super(message);
+                this.name = 'ResponseError';
+                if (Error.captureStackTrace) {
+                    Error.captureStackTrace(this, ResponseError);
+                }
+            }
+        }
+
+        async function sleep(timeMs) {
+            return new Promise(resolve => setTimeout(resolve, timeMs));
+        }
+
+        function getHexString(uint8Array) {
+            return Array.from(uint8Array)
+                .map(byte => byte.toString(16).padStart(2, '0'))
+                .join(' ');
+        }
+
+        function Uint8ArrayCat(array1, array2) {
+            const concatenated = new Uint8Array(array1.length + array2.length);
+            concatenated.set(array1);
+            concatenated.set(array2, array1.length);
+            return concatenated;
+        }
+
+        function log(message) {
+            console.log(`${(performance.now() / 1000).toFixed(4)}: ${message}`);
+        }
+
+        function getDefaultLanguageCode() {
+            if (navigator.language !== null) {
+                let languageCode = navigator.language.slice(0, 2);
+                languageCode = languageCode.toLowerCase();
+
+                if (languageCode === 'zh') {
+                    languageCode = 'zh_CN';
+                }
+
+                if (!(languageCode in languageNameFromCode)) {
+                    languageCode = 'en';
+                }
+
+                return languageCode;
+            } else {
+                return 'en';
+            }
+        }
+
+        function getLanguageCodeHTML() {
+            const sortedLanguageCodes = Object.entries(languageNameFromCode)
+                .sort((a, b) => a[1].localeCompare(b[1]))
+                .map(([code]) => code);
+
+            let languageCodeHTML = '<select id="languageCode">';
+            sortedLanguageCodes.forEach(languageCode => {
+                let language = languageNameFromCode[languageCode];
+                let selected = (languageCode === deviceInfo.languageCode) ? ' selected' : '';
+                languageCodeHTML += `<option value="${languageCode}"${selected}>${language}</option>`;
+            });
+            languageCodeHTML += '</select>';
+
+            return languageCodeHTML;
+        }
+
+        // Serial port
+
+        let port = null;
+        let receivedData = new Uint8Array();
+
+        async function requestPort() {
+            filters = [
+                { usbVendorId: 0x483 },  // Filter CDC USART interfaces
+                { usbVendorId: 0x1a86 }, // Filter WCH USART interfaces
+                { usbVendorId: 0x10c4 }, // Filter CP210x USART interfaces
+            ];
+
+            port = await navigator.serial.requestPort({ filters });
+        }
+
+        function isPortOpen() {
+            return (port.readable !== null) || (port.writable !== null);
+        }
+
+        async function openPort(baudRate, dataBits, parity, stopBits) {
+            if (isPortOpen()) {
+                await closePort();
+
+                await sleep(10); // Fix CP210x issues
+            }
+
+            await port.open({
+                baudRate,
+                dataBits,
+                parity,
+                stopBits
+            });
+        }
+
+        async function closePort() {
+            if (!isPortOpen()) {
+                return;
+            }
+
+            await port.close();
+        }
+
+        async function sendData(data) {
+            // +++ TEST
+            log('sendData: ' + getHexString(data));
+            // +++ TEST
+
+            let writer = port.writable.getWriter();
+            await writer.write(data);
+            writer.releaseLock();
+        }
+
+        async function receiveData(numBytes, timeoutMs) {
+            let reader = port.readable.getReader();
+
+            try {
+                await Promise.race([
+                    (async () => {
+                        while (receivedData.length < numBytes) {
+                            const { value, done } = await reader.read();
+
+                            if (done) {
+                                throw new DOMException('', 'NetworkError');
+                            }
+
+                            log('Chunk: ' + getHexString(value));
+
+                            receivedData = Uint8ArrayCat(receivedData, value);
+                        }
+                    })(),
+                    new Promise((resolve, reject) =>
+                        setTimeout(() => reject(new TimeoutError()), timeoutMs))
+                ]);
+            } finally {
+                reader.releaseLock();
+            }
+
+            let data = receivedData.slice(0, numBytes);
+            receivedData = receivedData.slice(numBytes);
+
+            log('receivedData: ' + getHexString(data));
+
+            return data;
+        }
+
+        async function receiveAvailableData(timeoutMs) {
+            try {
+                await receiveData(Number.MAX_SAFE_INTEGER, timeoutMs);
+            } catch (error) {
+                if (!(error instanceof TimeoutError)) {
+                    throw error;
+                }
+
+                let data = receivedData;
+                receivedData = new Uint8Array();
+
+                log('receiveAvailableData: ' + getHexString(data));
+
+                return data;
+            }
+        }
+
+        async function sendText(s) {
+            await sendData(new TextEncoder().encode(s));
+        }
+
+        async function sendLine(s) {
+            await sendText(s + '\r\n');
+        }
+
+        async function receiveLine(timeoutMs) {
+            let lineData = new Uint8Array();
+            let crlf = [0xd, 0xa];
+
+            let currTime = performance.now();
+            const endTime = currTime + timeoutMs;
+
+            while (true) {
+                const value = await receiveData(1, endTime - currTime);
+                lineData = Uint8ArrayCat(lineData, value);
+
+                for (let i = 0; i < lineData.length - 1; i++) {
+                    if (lineData[i] === crlf[0] && lineData[i + 1] === crlf[1]) {
+                        return new TextDecoder().decode(lineData.slice(0, i));
+                    }
+                }
+
+                currTime = performance.now();
+            }
+        }
+
+        // Low-level system bootloader
+
+        const systemBootloaderSyncTimeout = 50;
+        const systemBootloaderRequestTimeout = 50;
+        const systemBootloaderReadMemoryTimeout = 100;
+        const systemBootloaderWriteMemoryTimeout = 200;
+        const systemBootloaderErasePageTimeout = 800;
+        const systemBootloaderMassErasePageTimeout = 24000;
+
+        async function ackSystemBootloader(timeoutMs = systemBootloaderRequestTimeout) {
+            let response = await receiveData(1, timeoutMs);
+
+            if (response[0] === 0x79) {
+                return;
+            } else if (response[0] === 0x1f) {
+                throw new ResponseError(`NACK`)
+            } else {
+                throw new ResponseError(`invalid response ${getHexString(response)}`)
+            }
+        }
+
+        async function syncSystemBootloader() {
+            await receiveAvailableData(systemBootloaderSyncTimeout);
+            await sendData(new Uint8Array([0x7f]));
+
+            try {
+                await ackSystemBootloader();
+
+                return;
+            } catch (error) {
+                if (!(error instanceof TimeoutError) &&
+                    !(error instanceof ResponseError)) {
+                    throw error;
+                }
+            }
+
+            // Resync
+            await sendData(new Uint8Array([0x7f]));
+            await receiveAvailableData(systemBootloaderSyncTimeout);
+        }
+
+        async function sendSystemBootloaderUint8(value) {
+            await sendData(new Uint8Array([value, 0xff - value]));
+            await ackSystemBootloader();
+        }
+
+        async function sendSystemBootloaderUint32(value) {
+            const d0 = (value >> 24) & 0xff;
+            const d1 = (value >> 16) & 0xff;
+            const d2 = (value >> 8) & 0xff;
+            const d3 = (value >> 0) & 0xff;
+            const checksum = d0 ^ d1 ^ d2 ^ d3;
+
+            await sendData(new Uint8Array([d0, d1, d2, d3, checksum]));
+            await ackSystemBootloader();
+        }
+
+        async function sendSystemBootloaderCommand(value) {
+            try {
+                await sendSystemBootloaderUint8(value);
+
+                return;
+            } catch (error) {
+                if (!(error instanceof ResponseError)) {
+                    throw error;
+                }
+            }
+
+            // Resync
+            await sendData(new Uint8Array([0x7f]));
+            await receiveAvailableData(systemBootloaderSyncTimeout);
+            await sendSystemBootloaderUint8(value);
+        }
+
+        async function sendSystemBootloaderBuffer(buffer, timeoutMs) {
+            let sendBuffer;
+            let checksum = 0;
+            if (buffer.length === 0) {
+                sendBuffer = new Uint8Array([0xff])
+            } else {
+                sendBuffer = Uint8ArrayCat(new Uint8Array([buffer.length - 1]), buffer);
+
+                for (const value of sendBuffer) {
+                    checksum ^= value;
+                }
+            }
+            sendBuffer = Uint8ArrayCat(sendBuffer, new Uint8Array([checksum]));
+
+            await sendData(sendBuffer);
+            await ackSystemBootloader(timeoutMs);
+        }
+
+        async function receiveSystemBootloaderBuffer() {
+            const countData = await receiveData(1, systemBootloaderRequestTimeout);
+            const buffer = await receiveData(countData[0] + 1, systemBootloaderReadMemoryTimeout);
+            await ackSystemBootloader();
+
+            return buffer;
+        }
+
+        // Mid-level system bootloader
+
+        async function getSystemBootloaderAvailableCommands() {
+            await sendSystemBootloaderCommand(0x00);
+            const data = await receiveSystemBootloaderBuffer()
+            return data.slice(2);
+        }
+
+        async function getSystemBootloaderDeviceVersion() {
+            await sendSystemBootloaderCommand(0x01);
+            const deviceOptions = await receiveData(3, systemBootloaderRequestTimeout);
+            await ackSystemBootloader();
+
+            return deviceOptions;
+        }
+
+        async function getSystemBootloaderProductId() {
+            await sendSystemBootloaderCommand(0x02);
+            const productIdData = await receiveSystemBootloaderBuffer();
+            return (productIdData[0] << 8) | (productIdData[1] << 0);
+        }
+
+        async function readSystemBootloaderMemory(address, count) {
+            await sendSystemBootloaderCommand(0x11);
+            await sendSystemBootloaderUint32(address);
+            await sendSystemBootloaderUint8(count - 1);
+            return await receiveData(count, systemBootloaderReadMemoryTimeout);
+        }
+
+        async function runSystemBootloaderApp(address) {
+            await sendSystemBootloaderCommand(0x21);
+            await sendSystemBootloaderUint32(address);
+        }
+
+        async function writeSystemBootloaderMemory(address, buffer) {
+            await sendSystemBootloaderCommand(0x31);
+            await sendSystemBootloaderUint32(address);
+            await sendSystemBootloaderBuffer(buffer, systemBootloaderWriteMemoryTimeout);
+        }
+
+        async function eraseSystemBootloaderMemory(pages = null) {
+            let timeoutMs;
+            if (pages === null) {
+                pages = new Uint8Array();
+                timeoutMs = systemBootloaderMassErasePageTimeout;
+            } else {
+                pages = Uint8Array.from(pages);
+                timeoutMs = pages.length * systemBootloaderErasePageTimeout;
+            }
+
+            await sendSystemBootloaderCommand(0x43);
+            await sendSystemBootloaderBuffer(pages, timeoutMs);
+        }
+
+        async function protectSystemBootloaderReadout() {
+            await sendSystemBootloaderCommand(0x82);
+            await ackSystemBootloader();
+        }
+
+        async function unprotectSystemBootloaderReadout() {
+            await sendSystemBootloaderCommand(0x92);
+            await ackSystemBootloader(systemBootloaderMassErasePageTimeout);
+
+            // Wait for end of reset
+            await syncSystemBootloader();
+        }
+
+        // High-level system bootloader
+
+        async function detectSystemBootloaderDevice() {
+            try {
+                await syncSystemBootloader();
+            } catch (error) {
+                if (!(error instanceof TimeoutError)) {
+                    throw error;
+                }
+            }
+
+            let productId;
+            try {
+                productId = await getSystemBootloaderProductId();
+            } catch (error) {
+                if (!(error instanceof TimeoutError)) {
+                    throw error;
+                }
+
+                return false;
+            }
+
+            const hardware = Object.keys(installInfos).find(hardware =>
+                installInfos[hardware].productId === productId);
+
+            if (hardware === undefined)
+                return false;
+
+            installInfo = installInfos[hardware];
+
+            let uniqueId;
+            let readoutProtected;
+            try {
+                const uniqueIdData = await readSystemBootloaderMemory(installInfo.uniqueIdAddress, 12);
+                uniqueId = getHexString(uniqueIdData);
+                readoutProtected = false;
+            } catch (error) {
+                if (!(error instanceof ResponseError)) {
+                    throw error;
+                }
+
+                uniqueId = 'unknown (device is locked)';
+                readoutProtected = true;
+            }
+
+            const languageCode = getDefaultLanguageCode();
+
+            deviceInfo = {
+                'hardware': hardware,
+                'software': Software.SystemBootloader,
+                'version': 'recovery mode',
+                'languageCode': languageCode,
+                'id': uniqueId,
+                'readoutProtected': readoutProtected,
+            };
+
+            return true;
+        }
+
+        // Rad Pro devices
+
+        const radProBootTimeout = 400;
+        const radProCommandTimeout = 200;
+        const radProStartBootloaderTime = 300;
+
+        async function detectRadProDevice() {
+            try {
+                await sendLine('');
+                const response = await receiveLine(radProCommandTimeout);
+
+                if (response !== 'ERROR') {
+                    return false;
+                }
+            } catch (error) {
+                if (!(error instanceof TimeoutError)) {
+                    throw error;
+                }
+
+                return false;
+            }
+
+            await sendLine('GET deviceId');
+            let response = await receiveLine(radProCommandTimeout);
+
+            if (!response.startsWith('OK ')) {
+                return false;
+            }
+
+            let deviceId = response.slice(3);
+            let deviceIdTokens = deviceId.split(';');
+            if (deviceIdTokens.length !== 3) {
+                return false;
+            }
+
+            softwareTokens = deviceIdTokens[1].split('/');
+            if (!softwareTokens[0].startsWith('Rad Pro ')) {
+                return false;
+            }
+
+            const hardware = deviceIdTokens[0];
+            const version = softwareTokens[0].slice(8);
+            const languageCode = (softwareTokens.length > 1) ? softwareTokens[1] : getDefaultLanguageCode();
+            const id = deviceIdTokens[2].replace(/(.{2})/g, '$1 ').trim();
+
+            deviceInfo = {
+                'hardware': hardware,
+                'software': Software.RadPro,
+                'version': 'Rad Pro ' + version,
+                'languageCode': languageCode,
+                'id': id,
+                'readoutProtected': false,
+            };
+
+            return true;
+        }
+
+        async function startRadProDeviceBootloader() {
+            await sendLine('START bootloader');
+            const response = await receiveLine(radProCommandTimeout);
+
+            if (response !== 'OK') {
+                throw new ResponseError();
+            }
+        }
+
+        async function syncRadProDateAndTime() {
+            const date = new Date();
+            const deviceTime = Math.floor(date.getTime() / 1000);
+            const deviceTimeZone = Math.floor(-date.getTimezoneOffset() / 60);
+
+            await sendLine(`SET deviceTime ${deviceTime}`);
+            if (await receiveLine(radProCommandTimeout) === 'OK') {
+                await sendLine(`SET deviceTimeZone ${deviceTimeZone}`);
+                await receiveLine(radProCommandTimeout);
+            }
+        }
+
+        // GQ devices
+
+        const gqResetPulseTime = 50;
+        const gqCommandTimeout = 200;
+        const gqStartBootloaderTime = 500;
+
+        async function setGQDeviceBootSystem() {
+            await port.setSignals({ dataTerminalReady: false });
+        }
+
+        async function setGQDeviceBootApp() {
+            await port.setSignals({ dataTerminalReady: true });
+        }
+
+        async function triggerGQDeviceReset() {
+            await port.setSignals({ requestToSend: false });
+            await sleep(gqResetPulseTime);
+            await port.setSignals({ requestToSend: true });
+        }
+
+        async function detectGQDevice() {
+            let getVerData = null;
+            try {
+                await sendText('<GETVER>>');
+                getVerData = await receiveAvailableData(gqCommandTimeout);
+            } catch (error) {
+                if (error.message !== 'timeout') {
+                    throw error;
+                }
+            }
+
+            if (getVerData.length === 0) {
+                try {
+                    await sendText('<GETVER>>');
+                    getVerData = await receiveAvailableData(gqCommandTimeout);
+                } catch (error) {
+                    if (error.message !== 'timeout') {
+                        throw error;
+                    }
+
+                    return false;
+                }
+            }
+
+            const getVer = new TextDecoder().decode(getVerData).trim();
+            const getVerTokens = getVer.split('Re');
+            if (getVerTokens.length !== 2) {
+                return false;
+            }
+
+            const hardware = 'GQ ' + getVerTokens[0];
+            const version = 'Re' + getVerTokens[1];
+            if (version === 'Re RADP') {
+                return false;
+            }
+
+            const languageCode = getDefaultLanguageCode();
+
+            await sendText('<GETSERIAL>>');
+            const serial = getHexString(await receiveData(7, gqCommandTimeout));
+
+            deviceInfo = {
+                'hardware': hardware,
+                'software': Software.GQ,
+                'version': version,
+                'languageCode': languageCode,
+                'id': serial,
+                'readoutProtected': true,
+            };
+
+            return true;
+        }
+
+        async function startGQDeviceBootloader() {
+
+            await sendText('<BOOTLOADER1>>');
+        }
+
+        // Firmware flash
+
+        async function downloadFirmware() {
+            const env = installInfos[deviceInfo.hardware].env;
+            const languageCode = document.getElementById('languageCode').value;
+            const path = `radpro-${env}-${languageCode}-${radProVersion}.bin`;
+
+            sendInstallAnalytics(path);
+
+            const baseUrl = window.location.href;
+            const url = new URL(`${env}/firmware/${path}`, baseUrl);
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error(`url ${url}, status ${response.status}`);
+            }
+
+            return await response.blob();
+        }
+
+        async function eraseFirmwareMemory(firmware) {
+            const installInfo = installInfos[deviceInfo.hardware];
+            const pageSize = installInfo.flashPageSize;
+
+            let pageNum;
+            if (!document.getElementById('factoryReset').checked) {
+                pageNum = Math.floor((firmware.size + pageSize - 1) / pageSize);
+            } else {
+                pageNum = Math.floor(installInfo.flashSize / pageSize);
+            }
+
+            for (let pageIndex = 0; pageIndex < pageNum; pageIndex++) {
+                for (let attempt = 0; attempt < 3; attempt++) {
+                    try {
+                        await eraseSystemBootloaderMemory([pageIndex]);
+
+                        break;
+                    } catch (error) {
+                        if (!((error instanceof ResponseError) &&
+                            error.message === 'NACK')) {
+                            throw error;
+                        }
+                    }
+                }
+
+                updateIndicator('eraseIndicator', (pageIndex + 1) / pageNum);
+            }
+        }
+
+        async function flashFirmware(firmware) {
+            const installInfo = installInfos[deviceInfo.hardware];
+
+            const baseAddress = 0x08000000;
+            const blockSize = 0x100;
+            const blockNum = Math.floor((firmware.size + blockSize - 1) / blockSize);
+
+            for (let i = 0; i < blockNum; i++) {
+                const index = ((blockNum - 1) - i) * blockSize;
+                const address = baseAddress + index;
+
+                const blockBlob = firmware.slice(index, index + blockSize);
+                const blockBuffer = await blockBlob.arrayBuffer();
+                const blockData = new Uint8Array(blockBuffer);
+
+                for (let attempt = 0; attempt < 3; attempt++) {
+                    try {
+                        await writeSystemBootloaderMemory(address, blockData);
+
+                        break;
+                    } catch (error) {
+                        if (!((error instanceof ResponseError) &&
+                            error.message === 'NACK')) {
+                            throw error;
+                        }
+                    }
+                }
+
+                updateIndicator('flashIndicator', (i + 1) / blockNum);
+            }
+        }
+
+        // Analytics
+
+        const analyticsURL = 'https://www.stefanschmidtart.com/radpro/';
+
+        window.addEventListener('error', (event) => {
+            const url = new URL(`${analyticsURL}error`);
+            if (event.error) {
+                url.searchParams.append('message', event.error.message);
+                url.searchParams.append('stack', event.error.stack);
+            } else {
+                url.searchParams.append('message', event.message);
+                url.searchParams.append('lineno', event.lineno);
+                url.searchParams.append('colno', event.colno);
+            }
+            fetch(url).catch((reason) => { });
+        });
+
+        window.addEventListener('unhandledrejection', (event) => {
+            const url = new URL(`${analyticsURL}error`);
+            url.searchParams.append('message', event.reason.message);
+            url.searchParams.append('stack', event.reason.stack);
+            fetch(url);
+        });
+
+        function sendDetectAnalytics() {
+            const url = new URL(`${analyticsURL}detect`);
+            url.searchParams.append('hardware', deviceInfo.hardware);
+            url.searchParams.append('software', deviceInfo.software);
+            url.searchParams.append('version', deviceInfo.version);
+            url.searchParams.append('languageCode', deviceInfo.languageCode);
+            url.searchParams.append('id', deviceInfo.id);
+            fetch(url);
+        }
+
+        function sendInstallAnalytics(firmwareFile) {
+            const url = new URL(`${analyticsURL}install`);
+            url.searchParams.append('firmware', firmwareFile);
+            fetch(url);
+        }
+
+        // UI
+
+        let deviceInfo = null;
+
+        function pushHTML(s) {
+            const container = document.getElementById('container');
+            container.insertAdjacentHTML('beforeend', s);
+
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+
+        function pushError(message = null, recoverable = true) {
+            closePort();
+
+            disableButtonsAndSelects();
+
+            pushHTML(`<h2>Error</h2>`);
+
+            if (message === null) {
+                message = 'The previous action was unsuccessful.'
+            }
+
+            if (!recoverable) {
+                pushHTML(`<p>${message}</p>`);
+            } else {
+                pushHTML(`<p>${message} Please reload this page to try again.</p>
+
+                <p>If your device has become irresponsive, refer to the <a href="https://github.com/Gissio/radpro/blob/main/docs/recovery.md">recovery instructions</a>. If you plan to recover your device later, we recommend removing or disconnecting the battery.</p>`);
+            }
+        }
+
+        function disableButtonsAndSelects() {
+            for (let element of document.getElementsByTagName('button')) {
+                element.disabled = true;
+            }
+
+            for (let element of document.getElementsByTagName('input')) {
+                element.disabled = true;
+            }
+
+            for (let element of document.getElementsByTagName('select')) {
+                element.disabled = true;
+            }
+        }
+
+        function updateIndicator(indicator, value) {
+            document.getElementById(indicator).innerText = Math.floor(100 * value) + '%';
+        }
+
+        function updateBaudRate() {
+            const url = new URL(window.location.href);
+            if (document.getElementById('slowBaudRate').checked) {
+                url.searchParams.set('slowBaudRate', '1');
+            } else {
+                url.searchParams.delete('slowBaudRate');
+            }
+            window.history.replaceState({}, '', url);
+        }
+
+        async function openSystemBootloaderPort() {
+            let baudRate = document.getElementById('slowBaudRate').checked ? 19200 : 115200;
+            await openPort(baudRate, 8, 'even', 1);
+
+            await setGQDeviceBootSystem();
+            await triggerGQDeviceReset();
+        }
+
+        async function openAppPort() {
+            await openPort(115200, 8, 'none', 1);
+
+            await sleep(radProBootTimeout);
+        }
+
+        function start() {
+            pushHTML(`<h1><a href=".">Rad Pro web installer</a></h1>
+
+<p>This tool allows you to easily install or update the Rad Pro custom firmware on your compatible Geiger counter.<p>`);
+
+            if (!('serial' in navigator)) {
+                pushHTML(`<p>Unfortunately, your browser does not support <a href="https://wicg.github.io/serial/">Web Serial</a>.
+
+Please try one of these compatible browsers:</p>
+
+<ul>
+<li><b><a href="https://www.google.com/chrome/">Google Chrome</a></b> (version 89 or later)</li>
+<li><b><a href="https://www.microsoft.com/edge/">Microsoft Edge</a></b> (version 89 or later)</li>
+<li><b><a href="https://www.firefox.com/">Firefox</a></b> (using the <a href="https://addons.mozilla.org/es-ES/firefox/addon/webserial-for-firefox/">WebSerial for Firefox</a> extension)</li>
+<li><b><a href="https://www.chromium.org/">Chromium</a></b> (version 89 or later)</li>
+<li><b><a href="https://www.opera.com/">Opera</a></b> (version 76 or later)</li>
+</ul>`);
+
+                return;
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const slowBaudRateChecked =
+                (urlParams.get('slowBaudRate') === '1') ? ' checked' : '';
+
+            pushHTML(`<h2>Step 1: Device detection</h2>
+
+<p>To begin, ensure sure your device is powered on and connected via USB, then click <b>Continue</b>. This step is safe and will not modify your device.</p>
+
+<p><span class="tableEntry">Slow baud rate:</span><input type="checkbox" id="slowBaudRate" onclick="updateBaudRate();"${slowBaudRateChecked}/></p>
+
+<p><button type="button" onclick="step1();">Continue</button></p>`);
+        }
+
+        async function step1() {
+            try {
+                await requestPort();
+            } catch (error) {
+                return;
+            }
+
+            disableButtonsAndSelects();
+
+            try {
+                await openSystemBootloaderPort();
+
+                pushHTML(`<p>Detecting device in recovery mode...</p>`);
+
+                if (!await detectSystemBootloaderDevice()) {
+                    pushHTML(`<p>Detecting Rad Pro device...</p>`);
+
+                    await openAppPort();
+
+                    if (!await detectRadProDevice()) {
+                        pushHTML(`<p>Detecting GQ device...</p>`);
+
+                        if (!await detectGQDevice()) {
+                            pushError(`We couldn't detect your device.`);
+
+                            return;
+                        }
+                    }
+                }
+
+                sendDetectAnalytics();
+
+                pushHTML(`<p>We have detected a <b>${deviceInfo.hardware}</b>, serial number <b>${deviceInfo.id}</b>.</p>`)
+
+                if (!(deviceInfo.hardware in installInfos)) {
+                    pushError(`<p>Unfortunately, Rad Pro is not compatible with this model.</p>`, false);
+
+                    return;
+                }
+
+                const installInfo = installInfos[deviceInfo.hardware];
+                if (!('env' in installInfo)) {
+                    pushError(`<p>The Rad Pro web installer is not compatible with this model. Visit the <a href="https://github.com/Gissio/radpro">Rad Pro website</a> for detailed update instructions.</p>`, false);
+
+                    return;
+                }
+
+                if (deviceInfo.hardware.startsWith('GQ ')) {
+                    pushHTML(`<p>To revert to the original firmware after installing Rad Pro, contact GQ Electronics at <a href="mailto:support@gqelectronicsllc.com">support@gqelectronicsllc.com</a>. Provide your device model and serial number, and request the latest firmware update.</p>`);
+                }
+
+                let factoryResetChecked;
+                let factoryResetStyle;
+                let installationType;
+                if (deviceInfo.software === Software.RadPro) {
+                    factoryResetChecked = '';
+                    factoryResetStyle = '';
+                    installationType = 'update'
+                } else {
+                    factoryResetChecked = ' checked';
+                    factoryResetStyle = ' style="display:none"';
+                    installationType = 'installation'
+                }
+
+                let slowBaudRateStyle =
+                    (deviceInfo.software == Software.SystemBootloader) ?
+                        ' style="display:none"' :
+                        '';
+
+                pushHTML(`<h2>Step 2: Configure ${installationType}</h2>
+
+<p>Now, select your preferred ${installationType} options:</p>
+
+<p><span class="tableEntry">Language:</span>${getLanguageCodeHTML()}</p>
+
+<p${factoryResetStyle}><span class="tableEntry">Factory reset:</span><input type="checkbox" id="factoryReset"${factoryResetChecked}/></p>
+
+<p>To start the ${installationType}, click <b>Continue</b>. During the process:</p>
+
+<ul>
+    <li><b>Do not disconnect your device.</b></li>
+    <li><b>Do not close this window.</b></li>
+    <li><b>Do not shut down your computer.</b></li>
+</ul>
+
+<p><button type="button" onclick="step2();">Continue</button></p>`);
+            } catch (error) {
+                pushError();
+
+                throw error;
+            }
+        }
+
+        async function step2() {
+            disableButtonsAndSelects();
+
+            pushHTML(`<h2>Step 3: Flashing firmware</h2>`);
+
+            try {
+                if (deviceInfo.software !== Software.SystemBootloader) {
+                    if (deviceInfo.software === Software.RadPro) {
+                        await startRadProDeviceBootloader();
+                        await openSystemBootloaderPort();
+                        await sleep(radProStartBootloaderTime);
+                        await syncSystemBootloader();
+                    } else if (deviceInfo.software === Software.GQ) {
+                        await startGQDeviceBootloader();
+                        await openSystemBootloaderPort();
+                        await sleep(gqStartBootloaderTime);
+                        await syncSystemBootloader();
+                    }
+                }
+
+                pushHTML(`<p>Downloading firmware...</p>`);
+
+                firmware = await downloadFirmware();
+
+                // +++ TEST
+                // await protectSystemBootloaderReadout();
+                // await syncSystemBootloader();
+                // return;
+                // +++ TEST
+
+                pushHTML(`<p>Erasing flash memory (<span id="eraseIndicator">0%</span>)...</p>`);
+
+                if (deviceInfo.readoutProtected) {
+                    await unprotectSystemBootloaderReadout(24000);
+
+                    updateIndicator('eraseIndicator', 1);
+                } else {
+                    await eraseFirmwareMemory(firmware);
+                }
+
+                pushHTML(`<p>Flashing firmware (<span id="flashIndicator">0%</span>)...</p>`);
+
+                await flashFirmware(firmware);
+
+                pushHTML(`<p>Restarting device...</p>`);
+
+                await runSystemBootloaderApp(0x08000000);
+
+                pushHTML(`<p>Syncing date and time...</p>`);
+
+                await openAppPort();
+                await syncRadProDateAndTime();
+
+                await closePort();
+
+                const installInfo = installInfos[deviceInfo.hardware];
+                pushHTML(`<h2>Step 4: Configure your device</h2>
+
+${installInfo.instructions}
+
+<p>For detailed usage instructions, refer to the <a href="https://github.com/Gissio/radpro/blob/main/docs/manual.md">Rad Pro User Manual</a> and the <a href="https://github.com/Gissio/radpro/blob/main/docs/field-guide/field-guide.md">ionizing radiation field guide</a>.</a>
+
+    <h2>Step 5: Final steps</h2>
+
+<p>If you find Rad Pro useful, consider:</p>
+
+<ul>
+<li>Watching the <a href="https://github.com/Gissio/radpro">Rad Pro GitHub repository</a> for release notifications.</li>
+<li>Starring the <a href="https://github.com/Gissio/radpro">project</a> to show your support.</li>
+</ul>`);
+            } catch (error) {
+                pushError();
+
+                throw error;
+            }
+        }
+
+        start();
+    </script>
+</body>
+
+</html>
