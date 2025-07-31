@@ -146,7 +146,7 @@
     <script>
         // Install info
 
-        const radProVersion = '2.2beta6';
+        const radProVersion = '2.2beta5';
 
         const installInfos = {
             'FS2011 (STM32F051C8)': {
@@ -1309,6 +1309,10 @@ Please try one of these compatible browsers:</p>
             pushHTML(`<h2>Step 3: Flashing firmware</h2>`);
 
             try {
+                pushHTML(`<p>Downloading firmware...</p>`);
+
+                firmware = await downloadFirmware();
+
                 if (deviceInfo.software !== Software.SystemBootloader) {
                     if (deviceInfo.software === Software.RadPro) {
                         await startRadProDeviceBootloader();
@@ -1322,16 +1326,6 @@ Please try one of these compatible browsers:</p>
                         await syncSystemBootloader();
                     }
                 }
-
-                pushHTML(`<p>Downloading firmware...</p>`);
-
-                firmware = await downloadFirmware();
-
-                // +++ TEST
-                // await protectSystemBootloaderReadout();
-                // await syncSystemBootloader();
-                // return;
-                // +++ TEST
 
                 pushHTML(`<p>Erasing flash memory (<span id="eraseIndicator">0%</span>)...</p>`);
 
