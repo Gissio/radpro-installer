@@ -146,95 +146,14 @@
     <script>
         // Install info
 
-        const radProVersion = '2.2beta5';
+        const radProVersion = '3.0rc1';
 
         const installInfos = {
             'FS2011 (STM32F051C8)': {
-                productId: 0x440,
-                uniqueIdAddress: 0x1ffff7ac,
-                flashSize: 0x10000,
-                flashPageSize: 0x400,
-                env: 'fs2011-stm32f051c8',
-                instructions: `<p>Use the following controls to operate your device:</p>
-
-<ul>
-<li><b>Power on/off:</b> Press and hold the Power key.</li>
-<li><b>Switch measurement mode:</b> Use the Up or Down key.</li>
-<li><b>Switch secondary measurement view:</b> Press the Play/Pause key.</li>
-<li><b>Reset measurement/dismiss alarm:</b> Press and hold the Play/Pause key.</li>
-<li><b>Toggle pulse sound (measurement view only):</b> Press and hold the Down key.</li>
-<li><b>Sleep display (measurement view only):</b> Press the Power key.</li>
-<li><b>Access settings:</b> Press the Menu/OK key.</li>
-<li><b>Navigate options:</b> Use the Up or Down key.</li>
-<li><b>Select option:</b> Press the Menu/OK or Power key.</li>
-<li><b>Go back:</b> Press the Play/Pause key.</li>
-<li><b>Toggle lock mode:</b> Press and hold both the Power and Play/Pause keys.</li>
-</ul>
-
-<p>To configure the device:</p>
-
-<ul>
-<li>Go to <b>Settings &gt; Geiger tube &gt; Sensitivity</b> and select the option matching your Geiger-Müller tube.</li>
-<li>In <b>Geiger tube > HV Profile</b>, choose an appropriate HV profile.
-</ul>`,
             },
             'FS2011 (GD32F150C8)': {
-                productId: 0x440,
-                uniqueIdAddress: 0x1ffff7ac,
-                flashSize: 0x10000,
-                flashPageSize: 0x400,
-                env: 'fs2011-gd32f150c8',
-                instructions: `<p>Use the following controls to operate your device:</p>
-
-<ul>
-<li><b>Power on/off:</b> Press and hold the Power key.</li>
-<li><b>Switch measurement mode:</b> Use the Up or Down key.</li>
-<li><b>Switch secondary measurement view:</b> Press the Play/Pause key.</li>
-<li><b>Reset measurement/dismiss alarm:</b> Press and hold the Play/Pause key.</li>
-<li><b>Toggle pulse sound (measurement view only):</b> Press and hold the Down key.</li>
-<li><b>Sleep display (measurement view only):</b> Press the Power key.</li>
-<li><b>Access settings:</b> Press the Menu/OK key.</li>
-<li><b>Navigate options:</b> Use the Up or Down key.</li>
-<li><b>Select option:</b> Press the Menu/OK or Power key.</li>
-<li><b>Go back:</b> Press the Play/Pause key.</li>
-<li><b>Toggle lock mode:</b> Press and hold both the Power and Play/Pause keys.</li>
-</ul>
-
-<p>To configure the device:</p>
-
-<ul>
-<li>Go to <b>Settings &gt; Geiger tube &gt; Sensitivity</b> and select the option matching your Geiger-Müller tube.</li>
-<li>In <b>Geiger tube > HV Profile</b>, choose an appropriate HV profile.
-</ul>`,
             },
             'FS2011 (GD32F103C8)': {
-                productId: 0x410,
-                uniqueIdAddress: 0x1ffff7e8,
-                flashSize: 0x10000,
-                flashPageSize: 0x400,
-                env: 'fs2011-gd32f103c8',
-                instructions: `<p>Use the following controls to operate your device:</p>
-
-<ul>
-<li><b>Power on/off:</b> Press and hold the Power key.</li>
-<li><b>Switch measurement mode:</b> Use the Up or Down key.</li>
-<li><b>Switch secondary measurement view:</b> Press the Play/Pause key.</li>
-<li><b>Reset measurement/dismiss alarm:</b> Press and hold the Play/Pause key.</li>
-<li><b>Toggle pulse sound (measurement view only):</b> Press and hold the Down key.</li>
-<li><b>Sleep display (measurement view only):</b> Press the Power key.</li>
-<li><b>Access settings:</b> Press the Menu/OK key.</li>
-<li><b>Navigate options:</b> Use the Up or Down key.</li>
-<li><b>Select option:</b> Press the Menu/OK or Power key.</li>
-<li><b>Go back:</b> Press the Play/Pause key.</li>
-<li><b>Toggle lock mode:</b> Press and hold both the Power and Play/Pause keys.</li>
-</ul>
-
-<p>To configure the device:</p>
-
-<ul>
-<li>Go to <b>Settings &gt; Geiger tube &gt; Sensitivity</b> and select the option matching your Geiger-Müller tube.</li>
-<li>In <b>Geiger tube > HV Profile</b>, choose an appropriate HV profile.
-</ul>`,
             },
             'Bosean FS-600': {
                 productId: 0x460,
@@ -248,8 +167,8 @@
 <li><b>Power on/off:</b> Press and hold the OK/Power key.</li>
 <li><b>Switch measurement mode:</b> Use the Up or Down key.</li>
 <li><b>Switch secondary measurement view:</b> Press the Back key.</li>
-<li><b>Reset measurement/dismiss alarm:</b> Press and hold the Back key.</li>
-<li><b>Toggle pulse sound (measurement view only):</b> Press and hold the Down key.</li>
+<li><b>Reset measurement/dismiss alert:</b> Press and hold the Back key.</li>
+<li><b>Toggle pulse sound (measurement view only):</b> Press and hold the Right/Settings key.</li>
 <li><b>Sleep display (measurement view only):</b> Press the OK/Power key.</li>
 <li><b>Access settings:</b> Press the Right/Settings key.</li>
 <li><b>Navigate options:</b> Use the Up or Down key.</li>
@@ -275,17 +194,15 @@
                 instructions: `<p>Use the following controls to operate your device:</p>
 
 <ul>
-<li><b>Power on/off:</b> Press and hold the OK/Power key.</li>
-<li><b>Switch measurement mode:</b> Use the Up or Down key.</li>
-<li><b>Switch secondary measurement view:</b> Press the Back key.</li>
-<li><b>Reset measurement/dismiss alarm:</b> Press and hold the Back key.</li>
-<li><b>Toggle pulse sound (measurement view only):</b> Press and hold the Down key.</li>
-<li><b>Sleep display (measurement view only):</b> Press the OK/Power key.</li>
-<li><b>Access settings:</b> Press the Right/Settings key.</li>
-<li><b>Navigate options:</b> Use the Up or Down key.</li>
-<li><b>Select option:</b> Press the Right/Settings or OK/Power key.</li>
-<li><b>Go back:</b> Press the Back key.</li>
-<li><b>Toggle lock mode:</b> PPress and hold both the OK/Power and Back keys.</li>
+<li><b>Power on/off:</b> Press and long hold the Set/Power key.</li>
+<li><b>Switch measurement mode:</b> Press the Mode key.</li>
+<li><b>Switch secondary measurement view:</b> Press the Set/Power key.</li>
+<li><b>Reset measurement/dismiss alert:</b> Press and long hold the Mode key..</li>
+<li><b>Access settings:</b> Press and short hold the Set/Power key.</li>
+<li><b>Navigate options:</b> Use the Mode or Set/Power key.</li>
+<li><b>Select option:</b> Press and short hold the Set/Power key.</li>
+<li><b>Go back:</b> Press and short hold the Mode key.</li>
+<li><b>Toggle lock mode:</b> Press and long hold both the Set/Power and Mode keys.</li>
 </ul>
 
 <p>To configure the device:</p>
@@ -308,7 +225,7 @@
 <li><b>Power on/off:</b> Press and hold the OK/Power key.</li>
 <li><b>Switch measurement mode:</b> Use the Up/Back or Down/Settings key.</li>
 <li><b>Switch secondary measurement view:</b> Press the OK/Power key.</li>
-<li><b>Reset measurement/dismiss alarm:</b> Press and long hold the Up/Back key.</li>
+<li><b>Reset measurement/dismiss alert:</b> Press and long hold the Up/Back key.</li>
 <li><b>Toggle pulse sound (measurement view only):</b> Press and long hold both the Up/Back and Down/Settings key.</li>
 <li><b>Access settings:</b> Press and short hold the Down/Settings key.</li>
 <li><b>Navigate options:</b> Use the Up/Back or Down/Settings key.</li>
@@ -340,7 +257,7 @@
 <li><b>Power on/off:</b> Press and hold the Power key.</li>
 <li><b>Switch measurement mode:</b> Use the Up or Down key.</li>
 <li><b>Switch secondary measurement view:</b> Press the Back key.</li>
-<li><b>Reset measurement/dismiss alarm:</b> Press and hold the Back key.</li>
+<li><b>Reset measurement/dismiss alert:</b> Press and hold the Back key.</li>
 <li><b>Toggle pulse sound (measurement view only):</b> Press and hold the Down key.</li>
 <li><b>Voice play (measurement view only):</b> Press and hold the Up key.</li>
 <li><b>Access settings:</b> Press the Power key.</li>
@@ -825,9 +742,9 @@
 
         // Rad Pro devices
 
-        const radProBootTimeout = 400;
         const radProCommandTimeout = 200;
-        const radProStartBootloaderTime = 300;
+        const radProStartBootloaderTime = 400;
+        const radProBootTime = 500;
 
         async function detectRadProDevice() {
             try {
@@ -1172,8 +1089,6 @@
 
         async function openAppPort() {
             await openPort(115200, 8, 'none', 1);
-
-            await sleep(radProBootTimeout);
         }
 
         function start() {
@@ -1187,11 +1102,11 @@
 Please try one of these compatible browsers:</p>
 
 <ul>
-<li><b><a href="https://www.google.com/chrome/">Google Chrome</a></b> (version 89 or later)</li>
-<li><b><a href="https://www.microsoft.com/edge/">Microsoft Edge</a></b> (version 89 or later)</li>
-<li><b><a href="https://www.firefox.com/">Firefox</a></b> (using the <a href="https://addons.mozilla.org/es-ES/firefox/addon/webserial-for-firefox/">WebSerial for Firefox</a> extension)</li>
+<li><b><a href="https://www.google.com/chrome/">Google Chrome</a></b> (desktop version 89 or later)</li>
+<li><b><a href="https://www.microsoft.com/edge/">Microsoft Edge</a></b> (desktop version 89 or later)</li>
+<li><b><a href="https://www.firefox.com/">Firefox</a></b> (desktop version, using the <a href="https://addons.mozilla.org/es-ES/firefox/addon/webserial-for-firefox/">WebSerial for Firefox</a> extension)</li>
 <li><b><a href="https://www.chromium.org/">Chromium</a></b> (version 89 or later)</li>
-<li><b><a href="https://www.opera.com/">Opera</a></b> (version 76 or later)</li>
+<li><b><a href="https://www.opera.com/">Opera</a></b> (desktop version 76 or later)</li>
 </ul>`);
 
                 return;
@@ -1347,7 +1262,10 @@ Please try one of these compatible browsers:</p>
 
                 pushHTML(`<p>Syncing date and time...</p>`);
 
+                await sleep(radProBootTime);
+
                 await openAppPort();
+                await detectRadProDevice();
                 await syncRadProDateAndTime();
 
                 await closePort();
