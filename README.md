@@ -11,4 +11,4 @@ The Rad Pro Web Installer is compatible with the following Geiger counter models
 
 ## Installation steps
 
-* Visit the [Rad Pro web installer](https://gissio.github.io/radpro-installer/) site.
+* Go to the [Rad Pro web installer](https://gissio.github.io/radpro-installer/).
