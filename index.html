@@ -1157,23 +1157,26 @@ Please try one of these compatible browsers:</p>
 
                 sendDetectAnalytics();
 
-                pushHTML(`<p>We have detected a <b>${deviceInfo.hardware}</b>, serial number <b>${deviceInfo.id}</b> running <b>${deviceInfo.version}</b>.</p>`)
+                if (deviceInfo.hardware.startsWith('FS2011'))
+                    pushHTML(`<p>We have detected an <b>${deviceInfo.hardware}</b>, serial number <b>${deviceInfo.id}</b> running <b>${deviceInfo.version}</b>.</p>`)
+                else
+                    pushHTML(`<p>We have detected a <b>${deviceInfo.hardware}</b>, serial number <b>${deviceInfo.id}</b> running <b>${deviceInfo.version}</b>.</p>`)
 
-                if (deviceInfo.version.startsWith('Rad Pro 2')) {
-                    pushError(`<p>Unfortunately, this installer is not compatible with Rad Pro 2.x. Visit the <a href="https://github.com/Gissio/radpro">Rad Pro website</a> for update instructions with an ST-LINK v2 device.</p>`, false);
+                if (!(deviceInfo.hardware in installInfos)) {
+                    pushError(`<p>Unfortunately, Rad Pro is not compatible with this device.</p>`, false);
 
                     return;
                 }
 
-                if (!(deviceInfo.hardware in installInfos)) {
-                    pushError(`<p>Unfortunately, Rad Pro is not compatible with this model.</p>`, false);
+                if (deviceInfo.version.startsWith('Rad Pro 2')) {
+                    pushError(`<p>Unfortunately, the Rad Pro web installer is not compatible with devices running Rad Pro 2.  Visit the <a href="https://github.com/Gissio/radpro">Rad Pro website</a> for detailed update instructions.</p>`, false);
 
                     return;
                 }
 
                 const installInfo = installInfos[deviceInfo.hardware];
                 if (!('env' in installInfo)) {
-                    pushError(`<p>The Rad Pro web installer is not compatible with this model. Visit the <a href="https://github.com/Gissio/radpro">Rad Pro website</a> for detailed update instructions.</p>`, false);
+                    pushError(`<p>Unfortunately, the Rad Pro web installer is not compatible with this device. Visit the <a href="https://github.com/Gissio/radpro">Rad Pro website</a> for detailed update instructions.</p>`, false);
 
                     return;
                 }
