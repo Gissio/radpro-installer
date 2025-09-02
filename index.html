@@ -1226,7 +1226,7 @@ Please try one of these compatible browsers:</p>
 
 <p><button type="button" onclick="step2();">Continue</button></p>`);
             } catch (error) {
-                pushError();
+                pushError('The previous action was unsuccessful: <b>' + error.message + '</b></p><p>');
 
                 throw error;
             }
@@ -1300,7 +1300,7 @@ ${installInfo.instructions}
 <li>Starring the <a href="https://github.com/Gissio/radpro">project</a> to show your support.</li>
 </ul>`);
             } catch (error) {
-                pushError();
+                pushError('The previous action was unsuccessful: <b>' + error.message + '</b></p><p>');
 
                 throw error;
             }
