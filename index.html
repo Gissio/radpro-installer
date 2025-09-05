@@ -146,7 +146,7 @@
     <script>
         // Install info
 
-        const currentRadProVersion = '3.0.1';
+        const currentRadProVersion = '3.0.2';
 
         const installInfos = {
             'FS2011 (STM32F051C8)': {
@@ -157,6 +157,7 @@
             },
             'Bosean FS-600': {
                 productId: 0x460,
+                bootloaderAddress: 0x1fff0000,
                 uniqueIdAddress: 0x1fff7590,
                 flashSize: 0x20000,
                 flashPageSize: 0x800,
@@ -187,6 +188,7 @@
             },
             'Bosean FS-1000': {
                 productId: 0x460,
+                bootloaderAddress: 0x1fff0000,
                 uniqueIdAddress: 0x1fff7590,
                 flashSize: 0x20000,
                 flashPageSize: 0x800,
@@ -215,6 +217,7 @@
             },
             'Bosean FS-5000': {
                 productId: 0x435,
+                bootloaderAddress: 0x1fff0000,
                 uniqueIdAddress: 0x1fff7590,
                 flashSize: 0x40000,
                 flashPageSize: 0x800,
@@ -247,6 +250,7 @@
             },
             'GQ GMC-800': {
                 productId: 0x414,
+                bootloaderAddress: 0x1ffff000,
                 uniqueIdAddress: 0x1ffff7e8,
                 flashSize: 0x40000,
                 flashPageSize: 0x800,
@@ -445,16 +449,18 @@
                             const { value, done } = await reader.read();
 
                             if (done) {
-                                throw new DOMException('', 'NetworkError');
+                                throw new DOMException('The connection closed unexpectedly.', 'NetworkError');
                             }
 
+                            // +++ TEST
                             log('Chunk: ' + getHexString(value));
+                            // +++ TEST
 
                             receivedData = Uint8ArrayCat(receivedData, value);
                         }
                     })(),
                     new Promise((resolve, reject) =>
-                        setTimeout(() => reject(new TimeoutError()), timeoutMs))
+                        setTimeout(() => reject(new TimeoutError('Timeout while waiting for response.')), timeoutMs))
                 ]);
             } finally {
                 reader.releaseLock();
@@ -463,7 +469,9 @@
             let data = receivedData.slice(0, numBytes);
             receivedData = receivedData.slice(numBytes);
 
+            // +++ TEST
             log('receivedData: ' + getHexString(data));
+            // +++ TEST
 
             return data;
         }
@@ -479,7 +487,9 @@
                 let data = receivedData;
                 receivedData = new Uint8Array();
 
+                // +++ TEST
                 log('receiveAvailableData: ' + getHexString(data));
+                // +++ TEST
 
                 return data;
             }
@@ -529,9 +539,9 @@
             if (response[0] === 0x79) {
                 return;
             } else if (response[0] === 0x1f) {
-                throw new ResponseError(`NACK`)
+                throw new ResponseError(`Bootloader command failed: NACK`)
             } else {
-                throw new ResponseError(`invalid response ${getHexString(response)}`)
+                throw new ResponseError(`Bootloader command failed: invalid response ${getHexString(response)}`)
             }
         }
 
@@ -802,7 +812,7 @@
             const response = await receiveLine(radProCommandTimeout);
 
             if (response !== 'OK') {
-                throw new ResponseError();
+                throw new ResponseError('Failed to start bootloader.');
             }
         }
 
@@ -910,7 +920,7 @@
             const response = await fetch(url);
 
             if (!response.ok) {
-                throw new Error(`url ${url}, status ${response.status}`);
+                throw new Error(`Could not download ${url}: status ${response.status}`);
             }
 
             return await response.blob();
@@ -928,17 +938,21 @@
             }
 
             for (let pageIndex = 0; pageIndex < pageNum; pageIndex++) {
-                for (let attempt = 0; attempt < 3; attempt++) {
+                let attempt = 0;
+                let maxAttempts = 10;
+                while (attempt < maxAttempts) {
                     try {
                         await eraseSystemBootloaderMemory([pageIndex]);
 
                         break;
                     } catch (error) {
-                        if (!((error instanceof ResponseError) &&
-                            error.message === 'NACK')) {
+                        if (!(error instanceof ResponseError)) {
                             throw error;
                         }
                     }
+                }
+                if (attempt >= maxAttempts) {
+                    throw new ResponseError('Failed to erase flash memory.');
                 }
 
                 updateIndicator('eraseIndicator', (pageIndex + 1) / pageNum);
@@ -960,17 +974,21 @@
                 const blockBuffer = await blockBlob.arrayBuffer();
                 const blockData = new Uint8Array(blockBuffer);
 
-                for (let attempt = 0; attempt < 3; attempt++) {
+                let attempt = 0;
+                let maxAttempts = 10;
+                while (attempt < maxAttempts) {
                     try {
                         await writeSystemBootloaderMemory(address, blockData);
 
                         break;
                     } catch (error) {
-                        if (!((error instanceof ResponseError) &&
-                            error.message === 'NACK')) {
+                        if (!(error instanceof ResponseError)) {
                             throw error;
                         }
                     }
+                }
+                if (attempt >= maxAttempts) {
+                    throw new ResponseError('Failed to write flash memory.');
                 }
 
                 updateIndicator('flashIndicator', (i + 1) / blockNum);
