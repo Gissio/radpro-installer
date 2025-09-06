@@ -939,7 +939,7 @@
 
             for (let pageIndex = 0; pageIndex < pageNum; pageIndex++) {
                 let attempt = 0;
-                let maxAttempts = 10;
+                let maxAttempts = 5;
                 while (attempt < maxAttempts) {
                     try {
                         await eraseSystemBootloaderMemory([pageIndex]);
@@ -975,7 +975,7 @@
                 const blockData = new Uint8Array(blockBuffer);
 
                 let attempt = 0;
-                let maxAttempts = 10;
+                let maxAttempts = 5;
                 while (attempt < maxAttempts) {
                     try {
                         await writeSystemBootloaderMemory(address, blockData);
