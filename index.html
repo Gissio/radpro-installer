@@ -161,6 +161,7 @@
                 uniqueIdAddress: 0x1fff7590,
                 flashSize: 0x20000,
                 flashPageSize: 0x800,
+                extendedErase: true,
                 env: 'bosean-fs600',
                 instructions: `<p>Use the following controls to operate your device:</p>
 
@@ -192,6 +193,7 @@
                 uniqueIdAddress: 0x1fff7590,
                 flashSize: 0x20000,
                 flashPageSize: 0x800,
+                extendedErase: true,
                 env: 'bosean-fs1000',
                 instructions: `<p>Use the following controls to operate your device:</p>
 
@@ -221,6 +223,7 @@
                 uniqueIdAddress: 0x1fff7590,
                 flashSize: 0x40000,
                 flashPageSize: 0x800,
+                extendedErase: true,
                 env: 'bosean-fs5000',
                 instructions: `<p>Use the following controls to operate your device:</p>
 
@@ -254,6 +257,7 @@
                 uniqueIdAddress: 0x1ffff7e8,
                 flashSize: 0x40000,
                 flashPageSize: 0x800,
+                extendedErase: false,
                 env: 'gq-gmc800',
                 instructions: `<p>Use the following controls to operate your device:</p>
 
@@ -321,12 +325,22 @@
             }
         }
 
-        class ResponseError extends Error {
+        class NACKError extends Error {
             constructor(message = '') {
                 super(message);
-                this.name = 'ResponseError';
+                this.name = 'NACKError';
                 if (Error.captureStackTrace) {
-                    Error.captureStackTrace(this, ResponseError);
+                    Error.captureStackTrace(this, NACKError);
+                }
+            }
+        }
+
+        class InvalidResponseError extends Error {
+            constructor(message = '') {
+                super(message);
+                this.name = 'InvalidResponseError';
+                if (Error.captureStackTrace) {
+                    Error.captureStackTrace(this, InvalidResponseError);
                 }
             }
         }
@@ -453,7 +467,7 @@
                             }
 
                             // +++ TEST
-                            log('Chunk: ' + getHexString(value));
+                            log('receiveData: read: ' + getHexString(value));
                             // +++ TEST
 
                             receivedData = Uint8ArrayCat(receivedData, value);
@@ -534,43 +548,49 @@
         const systemBootloaderMassErasePageTimeout = 24000;
 
         async function ackSystemBootloader(timeoutMs = systemBootloaderRequestTimeout) {
-            let response = await receiveData(1, timeoutMs);
+            const data = await receiveData(1, timeoutMs);
 
-            if (response[0] === 0x79) {
+            if (data[0] === 0x79) {
                 return;
-            } else if (response[0] === 0x1f) {
-                throw new ResponseError(`Bootloader command failed: NACK`)
+            } else if (data[0] === 0x1f) {
+                throw new NACKError('Command error.')
             } else {
-                throw new ResponseError(`Bootloader command failed: invalid response ${getHexString(response)}`)
+                throw new InvalidResponseError('Invalid response.')
             }
         }
 
         async function syncSystemBootloader() {
             await receiveAvailableData(systemBootloaderSyncTimeout);
+
             await sendData(new Uint8Array([0x7f]));
+            await receiveAvailableData(systemBootloaderSyncTimeout);
 
-            try {
-                await ackSystemBootloader();
-
+            await sendData(new Uint8Array([0x7f]));
+            const data = await receiveAvailableData(systemBootloaderSyncTimeout);
+            if (data[data.length - 1] === 0x1f)
                 return;
-            } catch (error) {
-                if (!(error instanceof TimeoutError) &&
-                    !(error instanceof ResponseError)) {
-                    throw error;
-                }
-            }
 
-            // Resync
             await sendData(new Uint8Array([0x7f]));
             await receiveAvailableData(systemBootloaderSyncTimeout);
         }
 
-        async function sendSystemBootloaderUint8(value) {
-            await sendData(new Uint8Array([value, 0xff - value]));
+        async function sendSystemBootloaderUint8(value, timeoutMs = systemBootloaderRequestTimeout) {
+            const checksum = value ^ 0xff;
+
+            await sendData(new Uint8Array([value, checksum]));
+            await ackSystemBootloader(timeoutMs);
+        }
+
+        async function sendSystemBootloaderUint16(value, timeoutMs = systemBootloaderRequestTimeout) {
+            const d0 = (value >> 8) & 0xff;
+            const d1 = (value >> 0) & 0xff;
+            const checksum = d0 ^ d1;
+
+            await sendData(new Uint8Array([d0, d1, checksum]));
             await ackSystemBootloader();
         }
 
-        async function sendSystemBootloaderUint32(value) {
+        async function sendSystemBootloaderUint32(value, timeoutMs = systemBootloaderRequestTimeout) {
             const d0 = (value >> 24) & 0xff;
             const d1 = (value >> 16) & 0xff;
             const d2 = (value >> 8) & 0xff;
@@ -587,28 +607,48 @@
 
                 return;
             } catch (error) {
-                if (!(error instanceof ResponseError)) {
+                if (!(error instanceof InvalidResponseError) ||
+                    !(error instanceof NACKError) ||
+                    !(error instanceof TimeoutError)) {
                     throw error;
                 }
             }
 
-            // Resync
-            await sendData(new Uint8Array([0x7f]));
-            await receiveAvailableData(systemBootloaderSyncTimeout);
+            await syncSystemBootloader();
+
             await sendSystemBootloaderUint8(value);
         }
 
-        async function sendSystemBootloaderBuffer(buffer, timeoutMs) {
-            let sendBuffer;
+        async function sendSystemBootloaderUint8Buffer(buffer, timeoutMs) {
             let checksum = 0;
-            if (buffer.length === 0) {
-                sendBuffer = new Uint8Array([0xff])
-            } else {
-                sendBuffer = Uint8ArrayCat(new Uint8Array([buffer.length - 1]), buffer);
+            let sendBuffer = new Uint8Array([buffer.length - 1]);
+            sendBuffer = Uint8ArrayCat(sendBuffer, buffer);
+            for (const value of sendBuffer) {
+                checksum ^= value;
+            }
+            sendBuffer = Uint8ArrayCat(sendBuffer, new Uint8Array([checksum]));
 
-                for (const value of sendBuffer) {
-                    checksum ^= value;
-                }
+            await sendData(sendBuffer);
+            await ackSystemBootloader(timeoutMs);
+        }
+
+        function concatSystemBootloaderUint16(sendBuffer, value) {
+            let buffer = [
+                (value >> 8) & 0xff,
+                (value >> 0) & 0xff,
+            ];
+            return Uint8ArrayCat(sendBuffer, buffer);
+        }
+
+        async function sendSystemBootloaderUint16Buffer(buffer, timeoutMs) {
+            let checksum = 0;
+            let sendBuffer = new Uint8Array();
+            sendBuffer = concatSystemBootloaderUint16(sendBuffer, buffer.length - 1);
+            for (const value of buffer) {
+                sendBuffer = concatSystemBootloaderUint16(sendBuffer, value);
+            }
+            for (const value of sendBuffer) {
+                checksum ^= value;
             }
             sendBuffer = Uint8ArrayCat(sendBuffer, new Uint8Array([checksum]));
 
@@ -661,21 +701,35 @@
         async function writeSystemBootloaderMemory(address, buffer) {
             await sendSystemBootloaderCommand(0x31);
             await sendSystemBootloaderUint32(address);
-            await sendSystemBootloaderBuffer(buffer, systemBootloaderWriteMemoryTimeout);
+            await sendSystemBootloaderUint8Buffer(buffer, systemBootloaderWriteMemoryTimeout);
         }
 
-        async function eraseSystemBootloaderMemory(pages = null) {
-            let timeoutMs;
-            if (pages === null) {
-                pages = new Uint8Array();
-                timeoutMs = systemBootloaderMassErasePageTimeout;
-            } else {
-                pages = Uint8Array.from(pages);
-                timeoutMs = pages.length * systemBootloaderErasePageTimeout;
-            }
+        async function eraseSystemBootloaderMemory(extendedErase, pages = null) {
+            if (!extendedErase) {
+                if (pages === null) {
+                    const timeoutMs = systemBootloaderMassErasePageTimeout;
 
-            await sendSystemBootloaderCommand(0x43);
-            await sendSystemBootloaderBuffer(pages, timeoutMs);
+                    await sendSystemBootloaderCommand(0x43);
+                    await sendSystemBootloaderUint8(0xff, timeoutMs);
+                } else {
+                    const timeoutMs = pages.length * systemBootloaderErasePageTimeout;
+
+                    await sendSystemBootloaderCommand(0x43);
+                    await sendSystemBootloaderUint8Buffer(pages, timeoutMs);
+                }
+            } else {
+                if (pages === null) {
+                    const timeoutMs = systemBootloaderMassErasePageTimeout;
+
+                    await sendSystemBootloaderCommand(0x44);
+                    await sendSystemBootloaderUint16(0xffff, timeoutMs);
+                } else {
+                    const timeoutMs = pages.length * systemBootloaderErasePageTimeout;
+
+                    await sendSystemBootloaderCommand(0x44);
+                    await sendSystemBootloaderUint16Buffer(pages, timeoutMs);
+                }
+            }
         }
 
         async function protectSystemBootloaderReadout() {
@@ -694,13 +748,7 @@
         // High-level system bootloader
 
         async function detectSystemBootloaderDevice() {
-            try {
-                await syncSystemBootloader();
-            } catch (error) {
-                if (!(error instanceof TimeoutError)) {
-                    throw error;
-                }
-            }
+            await syncSystemBootloader();
 
             let productId;
             try {
@@ -728,7 +776,7 @@
                 uniqueId = getHexString(uniqueIdData);
                 readoutProtected = false;
             } catch (error) {
-                if (!(error instanceof ResponseError)) {
+                if (!(error instanceof InvalidResponseError)) {
                     throw error;
                 }
 
@@ -812,7 +860,7 @@
             const response = await receiveLine(radProCommandTimeout);
 
             if (response !== 'OK') {
-                throw new ResponseError('Failed to start bootloader.');
+                throw new InvalidResponseError('Failed to start bootloader.');
             }
         }
 
@@ -929,6 +977,7 @@
         async function eraseFirmwareMemory(firmware) {
             const installInfo = installInfos[deviceInfo.hardware];
             const pageSize = installInfo.flashPageSize;
+            const extendedErase = installInfo.extendedErase;
 
             let pageNum;
             if (!document.getElementById('factoryReset').checked) {
@@ -939,20 +988,24 @@
 
             for (let pageIndex = 0; pageIndex < pageNum; pageIndex++) {
                 let attempt = 0;
-                let maxAttempts = 5;
-                while (attempt < maxAttempts) {
+                let maxAttempts = 3;
+                while (true) {
                     try {
-                        await eraseSystemBootloaderMemory([pageIndex]);
+                        await eraseSystemBootloaderMemory(extendedErase, [pageIndex]);
 
                         break;
                     } catch (error) {
-                        if (!(error instanceof ResponseError)) {
+                        if (!(error instanceof NACKError) ||
+                            !(error instanceof InvalidResponseError)) {
                             throw error;
                         }
                     }
-                }
-                if (attempt >= maxAttempts) {
-                    throw new ResponseError('Failed to erase flash memory.');
+
+                    if (attempt < maxAttempts) {
+                        attempt += 1;
+                    } else {
+                        throw new InvalidResponseError('Failed to erase flash memory.');
+                    }
                 }
 
                 updateIndicator('eraseIndicator', (pageIndex + 1) / pageNum);
@@ -975,20 +1028,24 @@
                 const blockData = new Uint8Array(blockBuffer);
 
                 let attempt = 0;
-                let maxAttempts = 5;
-                while (attempt < maxAttempts) {
+                let maxAttempts = 3;
+                while (true) {
                     try {
                         await writeSystemBootloaderMemory(address, blockData);
 
                         break;
                     } catch (error) {
-                        if (!(error instanceof ResponseError)) {
+                        if (!(error instanceof NACKError) ||
+                            !(error instanceof InvalidResponseError)) {
                             throw error;
                         }
                     }
-                }
-                if (attempt >= maxAttempts) {
-                    throw new ResponseError('Failed to write flash memory.');
+
+                    if (attempt < maxAttempts) {
+                        attempt += 1;
+                    } else {
+                        throw new InvalidResponseError('Failed to write flash memory.');
+                    }
                 }
 
                 updateIndicator('flashIndicator', (i + 1) / blockNum);
@@ -1186,17 +1243,22 @@ Please try one of these compatible browsers:</p>
                     return;
                 }
 
-                if (deviceInfo.version.startsWith('Rad Pro 2')) {
-                    pushError(`<p>Unfortunately, the Rad Pro web installer is not compatible with devices running Rad Pro 2.  Visit the <a href="https://github.com/Gissio/radpro">Rad Pro website</a> for detailed update instructions.</p>`, false);
-
-                    return;
-                }
-
                 const installInfo = installInfos[deviceInfo.hardware];
                 if (!('env' in installInfo)) {
                     pushError(`<p>Unfortunately, the Rad Pro web installer is not compatible with this device. Visit the <a href="https://github.com/Gissio/radpro">Rad Pro website</a> for detailed update instructions.</p>`, false);
 
                     return;
+                }
+
+                if (deviceInfo.version.startsWith('Rad Pro ')) {
+                    const version = deviceInfo.version.slice(8)
+                    if ((version[3] == 'b') ||
+                        (version[3] == 'r') ||
+                        (version <= "3.0.1")) {
+                        pushError(`<p>Unfortunately, the Rad Pro web installer is not compatible with devices running Rad Pro 3.0.1 or earlier. Visit the <a href="https://github.com/Gissio/radpro">Rad Pro website</a> for detailed update instructions.</p>`, false);
+
+                        return;
+                    }
                 }
 
                 if (deviceInfo.hardware.startsWith('GQ ')) {
