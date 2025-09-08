@@ -484,7 +484,7 @@
             receivedData = receivedData.slice(numBytes);
 
             // +++ TEST
-            log('receivedData: ' + getHexString(data));
+            log('receiveData: ' + getHexString(data));
             // +++ TEST
 
             return data;
@@ -1252,13 +1252,13 @@ Please try one of these compatible browsers:</p>
 
                 if (deviceInfo.version.startsWith('Rad Pro ')) {
                     const version = deviceInfo.version.slice(8)
-                    // if ((version[3] == 'b') ||
-                    //     (version[3] == 'r') ||
-                    //     (version <= "3.0.1")) {
-                    //     pushError(`<p>Unfortunately, the Rad Pro web installer is not compatible with devices running Rad Pro 3.0.1 or earlier. Visit the <a href="https://github.com/Gissio/radpro">Rad Pro website</a> for detailed update instructions.</p>`, false);
+                    if ((version[3] == 'b') ||
+                        (version[3] == 'r') ||
+                        (version <= "3.0.1")) {
+                        pushError(`<p>Unfortunately, the Rad Pro web installer is not compatible with devices running Rad Pro 3.0.1 or earlier. Visit the <a href="https://github.com/Gissio/radpro">Rad Pro website</a> for detailed update instructions.</p>`, false);
 
-                    //     return;
-                    // }
+                        return;
+                    }
                 }
 
                 if (deviceInfo.hardware.startsWith('GQ ')) {
