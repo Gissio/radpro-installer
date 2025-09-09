@@ -1155,7 +1155,7 @@
         }
 
         async function openSystemBootloaderPort() {
-            let baudRate = document.getElementById('slowBaudRate').checked ? 19200 : 115200;
+            let baudRate = document.getElementById('slowBaudRate').checked ? 19200 : 38400;
             await openPort(baudRate, 8, 'even', 1);
 
             await setGQDeviceBootSystem();
