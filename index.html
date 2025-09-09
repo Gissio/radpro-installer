@@ -1103,6 +1103,7 @@
 
         window.addEventListener('unhandledrejection', (event) => {
             const url = new URL(`${analyticsURL}error`);
+            url.searchParams.append('op', currentOp);
             url.searchParams.append('message', event.reason.message);
             url.searchParams.append('stack', event.reason.stack);
             fetch(url);
