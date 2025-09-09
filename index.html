@@ -144,7 +144,7 @@
     </div>
 
     <script>
-        // Install info
+        // Constants
 
         const currentRadProVersion = '3.0.2';
 
@@ -312,6 +312,10 @@
             RadPro: 'Rad Pro',
             GQ: 'GQ',
         };
+
+        // Common variables
+
+        let currentOp = '';
 
         // Common functions
 
@@ -748,7 +752,11 @@
         // High-level system bootloader
 
         async function detectSystemBootloaderDevice() {
+            currentOp = 'detectSystemBootloaderDevice (sync)';
+
             await syncSystemBootloader();
+
+            currentOp = 'detectSystemBootloaderDevice (get product id)';
 
             let productId;
             try {
@@ -768,6 +776,8 @@
                 return false;
 
             installInfo = installInfos[hardware];
+
+            currentOp = 'detectSystemBootloaderDevice (read unique id)';
 
             let uniqueId;
             let readoutProtected;
@@ -805,6 +815,8 @@
         const radProBootTime = 500;
 
         async function detectRadProDevice() {
+            currentOp = 'detectRadProDevice (sync)';
+
             try {
                 await sendLine('');
                 const response = await receiveLine(radProCommandTimeout);
@@ -819,6 +831,8 @@
 
                 return false;
             }
+
+            currentOp = 'detectRadProDevice (deviceId)';
 
             await sendLine('GET deviceId');
             let response = await receiveLine(radProCommandTimeout);
@@ -856,6 +870,8 @@
         }
 
         async function startRadProDeviceBootloader() {
+            currentOp = 'startRadProDeviceBootloader';
+
             await sendLine('START bootloader');
             const response = await receiveLine(radProCommandTimeout);
 
@@ -869,8 +885,12 @@
             const deviceTime = Math.floor(date.getTime() / 1000);
             const deviceTimeZone = Math.floor(-date.getTimezoneOffset() / 60);
 
+            currentOp = 'syncRadProDateAndTime (deviceTime)';
+
             await sendLine(`SET deviceTime ${deviceTime}`);
             if (await receiveLine(radProCommandTimeout) === 'OK') {
+                currentOp = 'syncRadProDateAndTime (deviceTimeZone)';
+
                 await sendLine(`SET deviceTimeZone ${deviceTimeZone}`);
                 await receiveLine(radProCommandTimeout);
             }
@@ -897,6 +917,8 @@
         }
 
         async function detectGQDevice() {
+            currentOp = 'detectGQDevice (GETVER)';
+
             let getVerData = null;
             try {
                 await sendText('<GETVER>>');
@@ -934,6 +956,8 @@
 
             const languageCode = getDefaultLanguageCode();
 
+            currentOp = 'detectGQDevice (GETSERIAL)';
+
             await sendText('<GETSERIAL>>');
             const serial = getHexString(await receiveData(7, gqCommandTimeout));
 
@@ -950,6 +974,7 @@
         }
 
         async function startGQDeviceBootloader() {
+            currentOp = 'startGQDeviceBootloader';
 
             await sendText('<BOOTLOADER1>>');
         }
@@ -957,6 +982,8 @@
         // Firmware flash
 
         async function downloadFirmware() {
+            currentOp = 'downloadFirmware';
+
             const env = installInfos[deviceInfo.hardware].env;
             const languageCode = document.getElementById('languageCode').value;
             const path = `radpro-${env}-${languageCode}-${currentRadProVersion}.bin`;
@@ -991,6 +1018,8 @@
                 let maxAttempts = 3;
                 while (true) {
                     try {
+                        currentOp = `eraseFirmwareMemory (page {pageIndex}, attempt {attempt})`;
+
                         await eraseSystemBootloaderMemory(extendedErase, [pageIndex]);
 
                         break;
@@ -1031,6 +1060,8 @@
                 let maxAttempts = 3;
                 while (true) {
                     try {
+                        currentOp = `flashFirmware (page {address}, attempt {attempt})`;
+
                         await writeSystemBootloaderMemory(address, blockData);
 
                         break;
@@ -1058,6 +1089,7 @@
 
         window.addEventListener('error', (event) => {
             const url = new URL(`${analyticsURL}error`);
+            url.searchParams.append('op', currentOp);
             if (event.error) {
                 url.searchParams.append('message', event.error.message);
                 url.searchParams.append('stack', event.error.stack);
@@ -1155,6 +1187,8 @@
         }
 
         async function openSystemBootloaderPort() {
+            currentOp = 'openSystemBootloaderPort';
+
             let baudRate = document.getElementById('slowBaudRate').checked ? 19200 : 57600;
             await openPort(baudRate, 8, 'even', 1);
 
@@ -1339,7 +1373,9 @@ Please try one of these compatible browsers:</p>
                 pushHTML(`<p>Erasing flash memory (<span id="eraseIndicator">0%</span>)...</p>`);
 
                 if (deviceInfo.readoutProtected) {
-                    await unprotectSystemBootloaderReadout(24000);
+                    currentOp = 'unprotectSystemBootloaderReadout';
+
+                    await unprotectSystemBootloaderReadout(systemBootloaderMassErasePageTimeout);
 
                     updateIndicator('eraseIndicator', 1);
                 } else {
@@ -1351,6 +1387,8 @@ Please try one of these compatible browsers:</p>
                 await flashFirmware(firmware);
 
                 pushHTML(`<p>Restarting device...</p>`);
+
+                currentOp = 'runSystemBootloaderApp';
 
                 await runSystemBootloaderApp(0x08000000);
 
