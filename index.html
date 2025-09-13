@@ -885,13 +885,15 @@
             const deviceTime = Math.floor(date.getTime() / 1000);
             const deviceTimeZone = Math.floor(-date.getTimezoneOffset() / 60);
 
-            currentOp = 'syncRadProDateAndTime (deviceTime)';
+            currentOp = 'syncRadProDateAndTime (deviceTimeZone)';
 
-            await sendLine(`SET deviceTime ${deviceTime}`);
+            await sendLine(`SET deviceTimeZone ${deviceTimeZone}`);
             if (await receiveLine(radProCommandTimeout) === 'OK') {
-                currentOp = 'syncRadProDateAndTime (deviceTimeZone)';
+                currentOp = 'syncRadProDateAndTime (deviceTime)';
 
-                await sendLine(`SET deviceTimeZone ${deviceTimeZone}`);
+                await sleep(500);
+
+                await sendLine(`SET deviceTime ${deviceTime}`);
                 await receiveLine(radProCommandTimeout);
             }
         }
