@@ -891,8 +891,6 @@
             if (await receiveLine(radProCommandTimeout) === 'OK') {
                 currentOp = 'syncRadProDateAndTime (deviceTime)';
 
-                await sleep(500);
-
                 await sendLine(`SET deviceTime ${deviceTime}`);
                 await receiveLine(radProCommandTimeout);
             }
@@ -1333,7 +1331,7 @@ Please try one of these compatible browsers:</p>
 
 <p${factoryResetStyle}><span class="tableEntry">Factory reset:</span><input type="checkbox" id="factoryReset"${factoryResetChecked}/></p>
 
-<p>To start the ${installationType}, click <b>Continue</b>. During the process:</p>
+<p>To start the installation, click <b>Continue</b>. During the process:</p>
 
 <ul>
     <li><b>Do not disconnect your device.</b></li>
