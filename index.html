@@ -130,6 +130,32 @@
             display: inline-block;
             width: 8rem;
         }
+
+        #dropZone {
+            position: fixed;
+            display: flex;
+            inset: 0;
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.33);
+            backdrop-filter: blur(2px);
+            transition-duration: 0.15s;
+        }
+
+        .dropCard {
+            padding: 2rem;
+            border-radius: 16px;
+            background: #ffffff;
+            border: 0.25rem dashed rgba(0, 0, 0, 0.8);
+            text-align: center;
+            animation: pop 150ms ease-out;
+        }
+
+        .dropTitle {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
     </style>
 </head>
 
@@ -139,6 +165,12 @@
             <path d="M480-360 280-560h400L480-360Z" />
         </symbol>
     </svg>
+
+    <div id="dropZone">
+        <div class="dropCard">
+            <div class="dropTitle">Drag custom firmware here.</div>
+        </div>
+    </div>
 
     <div id="container">
     </div>
@@ -289,9 +321,11 @@
             'fr': 'French',
             'hr': 'Croatian',
             'hu': 'Hungarian',
+            'id': 'Indonesian',
             'it': 'Italian',
             'ja': 'Japanese',
             'ko': 'Korean',
+            'lt': 'Lithuanian',
             'nl': 'Dutch',
             'no': 'Norwegian',
             'pl': 'Polish',
@@ -808,6 +842,22 @@
             return true;
         }
 
+        async function resetDevice() {
+            await setGQDeviceBootApp();
+
+            const blockData = new Uint8Array([
+                0x00, 0x20, 0x00, 0x20, 0x09, 0x10, 0x00, 0x20,
+                0x05, 0x48, 0x01, 0x68, 0x05, 0x4A, 0x01, 0xF4,
+                0xE0, 0x61, 0x41, 0xEA, 0x02, 0x01, 0x01, 0x60,
+                0xBF, 0xF3, 0x4F, 0x8F, 0xFE, 0xE7, 0x00, 0x00,
+                0x0C, 0xED, 0x00, 0xE0, 0x04, 0x00, 0xFA, 0x05
+            ]);
+
+            await writeSystemBootloaderMemory(0x20001000, blockData);
+
+            await runSystemBootloaderApp(0x20001000);
+        }
+
         // Rad Pro devices
 
         const radProCommandTimeout = 200;
@@ -979,6 +1029,81 @@
             await sendText('<BOOTLOADER1>>');
         }
 
+        // Custom firmware
+
+        var dropZone;
+        var dragCounter = 0;
+        var customFirmware = null;
+
+        function showDropZone() {
+            dropZone.style.visibility = '';
+            dropZone.style.opacity = 1;
+        }
+
+        function hideDropZone() {
+            dropZone.style.visibility = 'hidden';
+            dropZone.style.opacity = 0;
+            dragCounter = 0;
+        }
+
+        function updateCustomFirmwareDiv() {
+            const defaultFirmwareDiv = document.getElementById('defaultFirmware');
+            const customFirmwareDiv = document.getElementById('customFirmware');
+
+            if (customFirmware !== null) {
+                defaultFirmwareDiv.style.display = 'none';
+                customFirmwareDiv.style.display = '';
+                document.getElementById('customFirmwareName').innerText = customFirmware.name;
+            } else {
+                defaultFirmwareDiv.style.display = '';
+                customFirmwareDiv.style.display = 'none';
+            }
+        }
+
+        function initDropZone() {
+            dropZone = document.getElementById('dropZone');
+            dropZone.style.visibility = 'hidden';
+
+            window.addEventListener('dragenter', (event) => {
+                if (dragCounter == 0) {
+                    showDropZone();
+                }
+
+                dragCounter += 1;
+
+                event.dataTransfer.dropEffect = 'copy';
+                event.preventDefault();
+            });
+            dropZone.addEventListener('dragover', (event) => {
+                event.preventDefault();
+            });
+            dropZone.addEventListener('drop', (event) => {
+                hideDropZone();
+
+                const files = event.dataTransfer.files;
+                if (files.length > 0 && files[0].size > 0) {
+                    var file = files[0];
+
+                    customFirmware = file;
+
+                    sendInstallAnalytics(file.name);
+
+                    updateCustomFirmwareDiv();
+                }
+
+                event.preventDefault();
+            });
+            window.addEventListener('dragleave', (event) => {
+                if (dragCounter > 0) {
+                    dragCounter -= 1;
+                }
+
+                if (dragCounter == 0) {
+                    hideDropZone();
+                }
+            });
+        }
+
         // Firmware flash
 
         async function downloadFirmware() {
@@ -1119,9 +1244,17 @@
             fetch(url);
         }
 
-        function sendInstallAnalytics(firmwareFile) {
+        function sendInstallAnalytics(firmwareName, custom = false) {
             const url = new URL(`${analyticsURL}install`);
-            url.searchParams.append('firmware', firmwareFile);
+            if (custom) {
+                url.searchParams.append('custom', 1);
+            }
+            url.searchParams.append('firmware', firmwareName);
+            fetch(url);
+        }
+
+        function sendSuccessAnalytics() {
+            const url = new URL(`${analyticsURL}success`);
             fetch(url);
         }
 
@@ -1202,6 +1335,8 @@
         }
 
         function start() {
+            initDropZone();
+
             pushHTML(`<h1><a href=".">Rad Pro web installer</a></h1>
 
 <p>This tool allows you to easily install or update the Rad Pro custom firmware on your compatible Geiger counter.<p>`);
@@ -1290,9 +1425,7 @@ Please try one of these compatible browsers:</p>
                 } else {
                     if (deviceInfo.version.startsWith('Rad Pro ')) {
                         const version = deviceInfo.version.slice(8)
-                        if ((version[3] == 'b') ||
-                            (version[3] == 'r') ||
-                            (version <= "3.0.1")) {
+                        if (version <= "3.0.1") {
                             pushError(`<p>Unfortunately, the Rad Pro web installer is not compatible with devices running Rad Pro 3.0.1 or earlier. Visit the <a href="https://github.com/Gissio/radpro">Rad Pro website</a> for detailed update instructions.</p>`, false);
 
                             return;
@@ -1301,11 +1434,11 @@ Please try one of these compatible browsers:</p>
                 }
 
                 let factoryResetChecked;
-                let factoryResetStyle;
+                let factoryResetDisplay;
                 let installationType;
                 if (deviceInfo.software === Software.RadPro) {
                     factoryResetChecked = '';
-                    factoryResetStyle = '';
+                    factoryResetDisplay = '';
                     const currentVersionString = 'Rad Pro ' + currentRadProVersion;
                     if (deviceInfo.version === currentVersionString) {
                         installationType = 'reinstall'
@@ -1314,7 +1447,7 @@ Please try one of these compatible browsers:</p>
                     }
                 } else {
                     factoryResetChecked = ' checked';
-                    factoryResetStyle = ' style="display:none"';
+                    factoryResetDisplay = ' style="display:none"';
                     installationType = 'install'
                 }
 
@@ -1325,11 +1458,23 @@ Please try one of these compatible browsers:</p>
 
                 pushHTML(`<h2>Step 2: Configure installation</h2>
 
+<div id="defaultFirmware">
+
 <p>Now, select your preferred options to ${installationType} Rad Pro ${currentRadProVersion}:</p>
 
 <p><span class="tableEntry">Language:</span>${getLanguageCodeHTML()}</p>
 
-<p${factoryResetStyle}><span class="tableEntry">Factory reset:</span><input type="checkbox" id="factoryReset"${factoryResetChecked}/></p>
+</div>
+
+<div id="customFirmware">
+
+<p>Now, select your preferred options to install your custom firmware:</p>
+
+<p><span class="tableEntry">File:</span><span id="customFirmwareName"></span></p>
+
+</div>
+
+<p${factoryResetDisplay}><span class="tableEntry">Factory reset:</span><input type="checkbox" id="factoryReset"${factoryResetChecked}/></p>
 
 <p>To start the installation, click <b>Continue</b>. During the process:</p>
 
@@ -1340,6 +1485,8 @@ Please try one of these compatible browsers:</p>
 </ul>
 
 <p><button type="button" onclick="step2();">Continue</button></p>`);
+
+                updateCustomFirmwareDiv();
             } catch (error) {
                 pushError('The previous action was unsuccessful: <b>' + error.message + '</b></p><p>');
 
@@ -1353,9 +1500,14 @@ Please try one of these compatible browsers:</p>
             pushHTML(`<h2>Step 3: Flashing firmware</h2>`);
 
             try {
-                pushHTML(`<p>Downloading firmware...</p>`);
+                var firmware;
+                if (customFirmware !== null) {
+                    firmware = customFirmware;
+                } else {
+                    pushHTML(`<p>Downloading firmware...</p>`);
 
-                firmware = await downloadFirmware();
+                    firmware = await downloadFirmware();
+                }
 
                 if (deviceInfo.software !== Software.SystemBootloader) {
                     if (deviceInfo.software === Software.RadPro) {
@@ -1389,9 +1541,10 @@ Please try one of these compatible browsers:</p>
 
                 pushHTML(`<p>Restarting device...</p>`);
 
-                currentOp = 'runSystemBootloaderApp';
+                currentOp = 'restartDevice';
 
-                await runSystemBootloaderApp(0x08000000);
+                await resetDevice();
+                // await runSystemBootloaderApp(0x08000000);
 
                 pushHTML(`<p>Syncing date and time...</p>`);
 
@@ -1402,6 +1555,8 @@ Please try one of these compatible browsers:</p>
                 await syncRadProDateAndTime();
 
                 await closePort();
+
+                sendSuccessAnalytics();
 
                 const installInfo = installInfos[deviceInfo.hardware];
                 pushHTML(`<h2>Step 4: Configure your device</h2>
