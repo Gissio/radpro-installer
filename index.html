@@ -1050,6 +1050,10 @@
             const defaultFirmwareDiv = document.getElementById('defaultFirmware');
             const customFirmwareDiv = document.getElementById('customFirmware');
 
+            if ((defaultFirmwareDiv === null) || (customFirmwareDiv === null)) {
+                return;
+            }
+
             if (customFirmware !== null) {
                 defaultFirmwareDiv.style.display = 'none';
                 customFirmwareDiv.style.display = '';
