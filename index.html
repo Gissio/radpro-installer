@@ -842,22 +842,6 @@
             return true;
         }
 
-        async function resetDevice() {
-            await setGQDeviceBootApp();
-
-            const blockData = new Uint8Array([
-                0x00, 0x20, 0x00, 0x20, 0x09, 0x10, 0x00, 0x20,
-                0x05, 0x48, 0x01, 0x68, 0x05, 0x4A, 0x01, 0xF4,
-                0xE0, 0x61, 0x41, 0xEA, 0x02, 0x01, 0x01, 0x60,
-                0xBF, 0xF3, 0x4F, 0x8F, 0xFE, 0xE7, 0x00, 0x00,
-                0x0C, 0xED, 0x00, 0xE0, 0x04, 0x00, 0xFA, 0x05
-            ]);
-
-            await writeSystemBootloaderMemory(0x20001000, blockData);
-
-            await runSystemBootloaderApp(0x20001000);
-        }
-
         // Rad Pro devices
 
         const radProCommandTimeout = 200;
@@ -1547,8 +1531,12 @@ Please try one of these compatible browsers:</p>
 
                 currentOp = 'restartDevice';
 
-                await resetDevice();
-                // await runSystemBootloaderApp(0x08000000);
+                if (deviceInfo.hardware.startsWith('GQ ')) {
+                    await setGQDeviceBootApp();
+                    await triggerGQDeviceReset();
+                } else {
+                    await runSystemBootloaderApp(0x08000000);
+                }
 
                 pushHTML(`<p>Syncing date and time...</p>`);
 
