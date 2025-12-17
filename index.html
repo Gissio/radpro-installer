@@ -1244,9 +1244,9 @@
             fetch(url);
         }
 
-        function sendInstallAnalytics(firmwareName, custom = false) {
+        function sendInstallAnalytics(firmwareName) {
             const url = new URL(`${analyticsURL}install`);
-            if (custom) {
+            if (customFirmware !== null) {
                 url.searchParams.append('custom', 1);
             }
             url.searchParams.append('firmware', firmwareName);
