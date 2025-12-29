@@ -925,10 +925,10 @@
 
             await sendLine(`SET deviceTimeZone ${deviceTimeZone}`);
             if (await receiveLine(radProCommandTimeout) === 'OK') {
-                currentOp = 'syncRadProDateAndTime (deviceTime)';
+                // currentOp = 'syncRadProDateAndTime (deviceTime)';
 
-                await sendLine(`SET deviceTime ${deviceTime}`);
-                await receiveLine(radProCommandTimeout);
+                // await sendLine(`SET deviceTime ${deviceTime}`);
+                // await receiveLine(radProCommandTimeout);
             }
         }
 
@@ -1557,5 +1557,6 @@ ${installInfo.instructions}
         start();
     </script>
 </body>
+
 
 </html>
