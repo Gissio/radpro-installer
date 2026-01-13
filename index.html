@@ -848,7 +848,7 @@
 
         const radProCommandTimeout = 200;
         const radProStartBootloaderTime = 400;
-        const radProBootTime = 1000;
+        const radProBootTime = 2500;
 
         async function detectRadProDevice() {
             currentOp = 'detectRadProDevice (sync)';
@@ -925,10 +925,10 @@
 
             await sendLine(`SET deviceTimeZone ${deviceTimeZone}`);
             if (await receiveLine(radProCommandTimeout) === 'OK') {
-                // currentOp = 'syncRadProDateAndTime (deviceTime)';
+                currentOp = 'syncRadProDateAndTime (deviceTime)';
 
-                // await sendLine(`SET deviceTime ${deviceTime}`);
-                // await receiveLine(radProCommandTimeout);
+                await sendLine(`SET deviceTime ${deviceTime}`);
+                await receiveLine(radProCommandTimeout);
             }
         }
 
