@@ -788,11 +788,11 @@
         // High-level system bootloader
 
         async function detectSystemBootloaderDevice() {
-            currentOp = 'detectSystemBootloaderDevice (sync)';
+            currentOp = 'detectSystemBootloaderDevice (syncSystemBootloader)';
 
             await syncSystemBootloader();
 
-            currentOp = 'detectSystemBootloaderDevice (get product id)';
+            currentOp = 'detectSystemBootloaderDevice (getSystemBootloaderProductId)';
 
             let productId;
             try {
@@ -813,7 +813,7 @@
 
             installInfo = installInfos[hardware];
 
-            currentOp = 'detectSystemBootloaderDevice (read unique id)';
+            currentOp = 'detectSystemBootloaderDevice (readUniqueId)';
 
             let uniqueId;
             let readoutProtected;
@@ -848,7 +848,7 @@
 
         const radProCommandTimeout = 200;
         const radProStartBootloaderTime = 400;
-        const radProBootTime = 2500;
+        const radProBootTime = 500;
 
         async function detectRadProDevice() {
             currentOp = 'detectRadProDevice (sync)';
@@ -868,7 +868,7 @@
                 return false;
             }
 
-            currentOp = 'detectRadProDevice (deviceId)';
+            currentOp = 'detectRadProDevice (GET deviceId)';
 
             await sendLine('GET deviceId');
             let response = await receiveLine(radProCommandTimeout);
@@ -921,15 +921,30 @@
             const deviceTime = Math.floor(date.getTime() / 1000);
             const deviceTimeZone = Math.floor(-date.getTimezoneOffset() / 60);
 
-            currentOp = 'syncRadProDateAndTime (deviceTimeZone)';
+            currentOp = 'syncRadProDateAndTime (GET devicePower)';
+            await sendLine('GET devicePower');
+            const response = await receiveLine(radProCommandTimeout);
+            if (!response.startsWith('OK'))
+                throw new Error('Could not get device power state.');
+            else if (response === 'OK 0') {
+                currentOp = 'syncRadProDateAndTime (SET devicePower 1)';
+                await sendLine(`SET devicePower 1`);
+                const response = await receiveLine(radProCommandTimeout);
+                if (!response.startsWith('OK'))
+                    throw new Error(`Could not enable device power.`);
 
-            await sendLine(`SET deviceTimeZone ${deviceTimeZone}`);
-            if (await receiveLine(radProCommandTimeout) === 'OK') {
-                currentOp = 'syncRadProDateAndTime (deviceTime)';
-
-                await sendLine(`SET deviceTime ${deviceTime}`);
-                await receiveLine(radProCommandTimeout);
+                await sleep(2500);
             }
+
+            currentOp = 'syncRadProDateAndTime (SET deviceTimeZone)';
+            await sendLine(`SET deviceTimeZone ${deviceTimeZone}`);
+            if (await receiveLine(radProCommandTimeout) !== 'OK')
+                throw new Error(`Could not set time zone.`);
+
+            currentOp = 'syncRadProDateAndTime (SET deviceTime)';
+            await sendLine(`SET deviceTime ${deviceTime}`);
+            if (await receiveLine(radProCommandTimeout) !== 'OK')
+                throw new Error(`Could not set time.`);
         }
 
         // GQ devices
