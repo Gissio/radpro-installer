@@ -329,6 +329,7 @@
             'ja': 'Japanese',
             'ko': 'Korean',
             'lt': 'Lithuanian',
+            'lv': 'Latvian',
             'nl': 'Dutch',
             'no': 'Norwegian',
             'pl': 'Polish',
@@ -849,7 +850,7 @@
 
         const radProCommandTimeout = 200;
         const radProStartBootloaderTime = 400;
-        const radProBootTime = 4000;
+        const radProBootTime = 500;
 
         async function detectRadProDevice() {
             currentOp = 'detectRadProDevice (sync)';
@@ -922,26 +923,31 @@
             const deviceTime = Math.floor(date.getTime() / 1000);
             const deviceTimeZone = Math.floor(-date.getTimezoneOffset() / 60);
 
+            // Enable power
             currentOp = 'syncRadProDateAndTime (GET devicePower)';
             await sendLine('GET devicePower');
             const response = await receiveLine(radProCommandTimeout);
+
             if (!response.startsWith('OK'))
                 throw new Error('Could not get device power state.');
-            else if (response === 'OK 0') {
+
+            if (response === 'OK 0') {
                 currentOp = 'syncRadProDateAndTime (SET devicePower 1)';
                 await sendLine(`SET devicePower 1`);
                 const response = await receiveLine(radProCommandTimeout);
                 if (!response.startsWith('OK'))
                     throw new Error(`Could not enable device power.`);
 
-                await sleep(2500);
+                await sleep(2000);
             }
 
+            // Set time zone
             currentOp = 'syncRadProDateAndTime (SET deviceTimeZone)';
             await sendLine(`SET deviceTimeZone ${deviceTimeZone}`);
             if (await receiveLine(radProCommandTimeout) !== 'OK')
                 throw new Error(`Could not set time zone.`);
 
+            // Set time
             currentOp = 'syncRadProDateAndTime (SET deviceTime)';
             await sendLine(`SET deviceTime ${deviceTime}`);
             if (await receiveLine(radProCommandTimeout) !== 'OK')
