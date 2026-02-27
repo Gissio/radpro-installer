@@ -850,7 +850,7 @@
 
         const radProCommandTimeout = 200;
         const radProStartBootloaderTime = 400;
-        const radProBootTime = 500;
+        const radProBootTime = 1000;
 
         async function detectRadProDevice() {
             currentOp = 'detectRadProDevice (sync)';
@@ -937,9 +937,9 @@
                 const response = await receiveLine(radProCommandTimeout);
                 if (!response.startsWith('OK'))
                     throw new Error(`Could not enable device power.`);
-
-                await sleep(2000);
             }
+
+            await sleep(2000);
 
             // Set time zone
             currentOp = 'syncRadProDateAndTime (SET deviceTimeZone)';
